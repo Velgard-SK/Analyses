@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "WebFetch(domain:eic.ec.europa.eu)",
+      "WebFetch(domain:ec.europa.eu)",
+      "WebFetch(domain:www.ngisearch.eu)",
+      "WebFetch(domain:www.siea.sk)",
+      "WebFetch(domain:www.skit.sk)",
+      "WebFetch(domain:www.eurekanetwork.org)",
+      "WebFetch(domain:ngi.eu)",
+      "WebFetch(domain:mhsr.sk)",
+      "WebFetch(domain:eurostars-eureka.eu)",
+      "WebFetch(domain:www.sba.sk)",
+      "PowerShell(Get-ChildItem -Recurse \"C:\\\\Users\\\\radva\\\\OneDrive\\\\Velgard\\\\01_CyberHUB\\\\Finance\\\\Eropean Financing\" | Where-Object { !$_.PSIsContainer } | Select-Object FullName)",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\radva\\\\OneDrive\\\\Velgard\\\\01_CyberHUB\\\\Finance\\\\Eropean Financing\\\\data\")"
+    ]
+  }
+}

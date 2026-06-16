@@ -1,0 +1,39 @@
+name: Daily Financing Radar
+
+on:
+  schedule:
+    # Every day at 07:00 UTC (9:00 Prague/Bratislava time)
+    - cron: '0 7 * * *'
+  workflow_dispatch:  # allow manual trigger from GitHub Actions UI
+
+permissions:
+  contents: write   # needed to commit updated opportunities.json
+
+jobs:
+  fetch-and-update:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run fetch script
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PORT: "587"
+        run: python scripts/fetch_opportunities.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name  "Velgard Radar Bot"
+          git config user.email "radar-bot@velgard.eu"
+          git add data/opportunities.json data/data.js
+          git diff --cached --quiet || git commit -m "chore: daily opportunities update $(date -u +%Y-%m-%d)"
+          git push
