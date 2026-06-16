@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cybersecurity Market Map — v14: Global View</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0d0d1a}
+#map{width:100vw;height:100vh}
+
+#titlebar{
+  position:absolute;top:0;left:0;right:0;z-index:1000;
+  background:rgba(8,8,24,0.93);
+  padding:9px 18px;display:flex;align-items:center;gap:14px;
+  border-bottom:1px solid #2a2a5a;backdrop-filter:blur(6px)
+}
+#titlebar h1{font-size:15px;font-weight:700;color:#7eb6ff;white-space:nowrap}
+#titlebar span{font-size:11px;color:#888}
+#counter{margin-left:auto;font-size:11px;color:#aaa;white-space:nowrap}
+
+#filter-badge{
+  position:absolute;top:46px;right:14px;z-index:999;
+  background:rgba(8,8,24,0.93);border:1px solid #2a2a5a;
+  border-radius:10px;padding:12px 15px;max-width:265px;
+  backdrop-filter:blur(6px)
+}
+#filter-badge h3{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;
+                 color:#7eb6ff;margin-bottom:9px}
+.fb-row{display:flex;align-items:flex-start;gap:7px;margin-bottom:6px}
+.fb-dot{width:7px;height:7px;border-radius:50%;background:#4CAF50;flex-shrink:0;margin-top:3px}
+.fb-dot.new{background:#FF8F00}
+.fb-label{font-size:11px;color:#ccc;line-height:1.4}
+.fb-toggle{display:flex;align-items:center;gap:7px;margin-top:6px;cursor:pointer;user-select:none}
+.fb-toggle label{font-size:11px;color:#ccc;cursor:pointer}
+.fb-toggle input{cursor:pointer;accent-color:#FF8F00}
+
+#legend{
+  position:absolute;bottom:24px;left:14px;z-index:999;
+  background:rgba(8,8,24,0.93);border:1px solid #2a2a5a;
+  border-radius:10px;padding:13px 16px;min-width:200px;
+  backdrop-filter:blur(6px)
+}
+#legend h3{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;
+           color:#7eb6ff;margin-bottom:10px}
+.leg-row{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.leg-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;
+         border:2px solid rgba(255,255,255,0.18)}
+.leg-dot.startup-dot{border:2.5px solid #FF8F00}
+.leg-label{font-size:12px;color:#ccc}
+.leg-count{margin-left:auto;font-size:10px;color:#666}
+.leg-row.filterable{cursor:pointer;border-radius:6px;padding:2px 5px;margin-left:-5px;
+                    transition:background .15s,opacity .15s}
+.leg-row.filterable:hover{background:rgba(126,182,255,0.09)}
+.leg-row.filterable.active{background:rgba(126,182,255,0.16);
+                           outline:1px solid rgba(126,182,255,0.45)}
+.leg-row.filterable.active .leg-label{color:#fff}
+.leg-row.filterable.dimmed{opacity:0.28}
+#leg-clear-btn{display:none;width:100%;margin-top:10px;padding:5px 0;
+  background:rgba(126,182,255,0.1);border:1px solid rgba(126,182,255,0.3);
+  border-radius:6px;color:#7eb6ff;font-size:11px;cursor:pointer;
+  font-weight:600;letter-spacing:.4px;transition:background .15s}
+#leg-clear-btn:hover{background:rgba(126,182,255,0.22)}
+#leg-clear-btn.visible{display:block}
+
+.leaflet-popup-content-wrapper{
+  background:#0b0b1e!important;border:1px solid #2a2a5a!important;
+  border-radius:11px!important;color:#eee!important;
+  box-shadow:0 6px 30px rgba(0,0,0,0.7)!important;min-width:290px
+}
+.leaflet-popup-tip{background:#0b0b1e!important}
+.leaflet-popup-content{margin:14px 17px!important}
+.leaflet-popup-close-button{color:#888!important;top:8px!important;right:10px!important}
+
+.p-name{font-size:15px;font-weight:700;color:#7eb6ff;margin-bottom:5px}
+.p-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.p-tag{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;
+       text-transform:uppercase;letter-spacing:0.4px}
+.p-startup-banner{
+  margin-bottom:10px;padding:6px 10px;border-radius:7px;
+  background:rgba(255,143,0,0.12);border:1px solid rgba(255,143,0,0.35);
+  display:flex;align-items:center;gap:8px
+}
+.p-startup-banner .sb-label{font-size:11px;font-weight:700;color:#FF8F00;letter-spacing:.5px}
+.p-startup-banner .sb-meta{font-size:10px;color:#aaa}
+.p-grid{display:grid;grid-template-columns:90px 1fr;gap:3px 8px;font-size:11.5px}
+.p-key{color:#777;padding:2px 0}
+.p-val{color:#ddd;padding:2px 0}
+.p-notes{margin-top:9px;padding-top:9px;border-top:1px solid #1e1e3a;
+         font-size:11px;color:#999;line-height:1.5}
+.p-gov{display:inline-block;margin-top:7px;padding:3px 9px;border-radius:5px;
+       font-size:10px;background:rgba(244,67,54,0.15);color:#ff7070;
+       border:1px solid rgba(244,67,54,0.3)}
+.p-gov-con{background:rgba(255,152,0,0.15);color:#ffb74d;
+           border-color:rgba(255,152,0,0.3)}
+
+#search-wrap{display:flex;align-items:center;gap:0;margin-left:10px;position:relative}
+#search-box{
+  background:rgba(255,255,255,0.07);border:1px solid #3a3a6a;
+  border-radius:20px;padding:5px 30px 5px 12px;font-size:12px;
+  color:#ddd;outline:none;width:200px;transition:border-color .2s,width .2s
+}
+#search-box::placeholder{color:#555}
+#search-box:focus{border-color:#7eb6ff;width:260px}
+#search-clear{
+  position:absolute;right:8px;cursor:pointer;color:#555;
+  font-size:14px;user-select:none;display:none
+}
+#search-clear:hover{color:#ccc}
+#search-count{font-size:11px;color:#7eb6ff;white-space:nowrap;margin-left:8px;min-width:70px}
+
+.p-trend{margin-top:9px;padding-top:9px;border-top:1px solid #1e1e3a}
+.p-trend-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;
+               color:#7eb6ff;margin-bottom:6px}
+.p-trend svg{display:block;overflow:visible}
+
+/* ── News badge ring ─────────────────────────────────── */
+.news-ring-pulse {
+  animation: news-ring 2s ease-in-out infinite;
+}
+@keyframes news-ring {
+  0%,100% { stroke-opacity:0.9; }
+  50%      { stroke-opacity:0.15; }
+}
+.p-news-alert {
+  background:rgba(255,82,82,0.12);
+  border:1px solid rgba(255,82,82,0.5);
+  border-radius:5px;
+  padding:8px 10px;
+  margin-bottom:10px;
+}
+.p-news-alert-title {
+  color:#ff5252;
+  font-weight:700;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.6px;
+  margin-bottom:5px;
+}
+.p-news-alert a {
+  color:#ff8a80;
+  font-size:11px;
+  text-decoration:none;
+  display:block;
+  margin-top:3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:340px;
+}
+.p-news-alert a:hover { text-decoration:underline; }
+#news-counter {
+  display:none;
+  background:#ff5252;
+  color:white;
+  border-radius:10px;
+  padding:2px 8px;
+  font-size:10px;
+  font-weight:700;
+  margin-left:6px;
+  animation: news-ring 2s ease-in-out infinite;
+}
+
+/* ── Favourite / Watchlist ───────────────────────────────── */
+.fav-ring-pulse{animation:fav-ring 2.5s ease-in-out infinite}
+@keyframes fav-ring{0%,100%{stroke-opacity:.85}50%{stroke-opacity:.2}}
+#fav-btn{
+  display:block;width:100%;margin-top:10px;padding:6px 0;
+  background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.2);
+  border-radius:7px;color:#999;font-size:11px;cursor:pointer;
+  font-weight:600;letter-spacing:.4px;text-align:center;
+  transition:background .15s,color .15s,border-color .15s
+}
+#fav-btn:hover{background:rgba(255,215,0,0.14);color:#FFD700;border-color:rgba(255,215,0,0.4)}
+#fav-btn.is-fav{color:#FFD700;border-color:rgba(255,215,0,0.5);background:rgba(255,215,0,0.11)}
+#fav-counter{
+  display:none;background:rgba(255,215,0,0.12);color:#FFD700;
+  border:1px solid rgba(255,215,0,0.3);border-radius:10px;
+  padding:2px 8px;font-size:10px;font-weight:700;margin-left:6px
+}
+
+/* ── My Notes — per-company private notes, saved in browser localStorage ─── */
+.p-comment-wrap{margin-top:11px;padding-top:10px;border-top:1px solid #1e1e3a}
+.p-comment-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:3px}
+.p-comment-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#7eb6ff}
+.p-comment-hint{font-size:9.5px;color:#555;font-style:italic}
+.p-comment-box{
+  width:100%;min-height:62px;max-height:200px;resize:vertical;
+  background:rgba(255,255,255,0.05);border:1px solid #2a2a5a;
+  border-radius:6px;color:#ddd;font-size:11.5px;font-family:inherit;
+  padding:7px 9px;outline:none;transition:border-color .15s;box-sizing:border-box;
+  line-height:1.55
+}
+.p-comment-box:focus{border-color:#7eb6ff;background:rgba(255,255,255,0.07)}
+.p-comment-box::placeholder{color:#3a3a5a}
+.p-comment-footer{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+.p-comment-persist{font-size:9px;color:#3a3a5a;font-style:italic}
+.p-comment-saved{font-size:10px;color:#66BB6A;height:14px;
+                 opacity:0;transition:opacity .4s}
+
+/* ── Country / EU filter ─────────────────────────────────── */
+#country-select{
+  width:100%;margin-top:6px;padding:5px 8px;
+  background:rgba(255,255,255,0.06);border:1px solid #3a3a6a;
+  border-radius:7px;color:#ccc;font-size:11px;outline:none;
+  cursor:pointer;-webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:calc(100% - 8px) center
+}
+#country-select:focus{border-color:#7eb6ff}
+#country-select option{background:#0d0d1a;color:#ccc}
+#eu-filter-tag{
+  display:none;background:rgba(30,80,200,0.18);
+  border:1px solid rgba(100,160,255,0.4);
+  color:#7eb6ff!important; /* specificity guard: #titlebar span overrides plain ID */
+  border-radius:10px;padding:2px 8px;font-size:10px;font-weight:600;
+  cursor:pointer;white-space:nowrap;
+  transition:background .15s
+}
+#eu-filter-tag:hover{background:rgba(30,80,200,0.3)}
+</style>
+<script>
+/* News badge data — loaded from news_badge_data.js if present */
+window.NEWS_BADGES = window.NEWS_BADGES || {};
+</script>
+<script src="news_badge_data.js" onerror="window.NEWS_BADGES={}"></script>
+</head>
+<body>
+
+<div id="titlebar">
+  <h1>🌍 Cybersecurity Market Map — v14</h1>
+  <span>Global · Pentest · Defense · GRC · <span style="color:#FF8F00">★ New Startups</span></span>
+  <span id="eu-filter-tag" title="Click to remove EU filter">🇪🇺 EU Only ✕</span>
+  <div id="search-wrap">
+    <input id="search-box" type="text" placeholder="Search companies, country, tool, stage…" autocomplete="off"/>
+    <span id="search-clear" title="Clear">✕</span>
+  </div>
+  <span id="search-count"></span>
+  <span id="counter"></span>
+  <span id="news-counter">● 0 new</span>
+  <span id="fav-counter"></span>
+</div>
+
+<div id="legend">
+  <h3>Customer Focus (Color)</h3>
+  <div class="leg-row filterable" data-filter-group="focus" data-filter-key="ent"><div class="leg-dot" style="background:#1565c0"></div><span class="leg-label">Enterprise</span><span class="leg-count" id="lc-ent"></span></div>
+  <div class="leg-row filterable" data-filter-group="focus" data-filter-key="smb"><div class="leg-dot" style="background:#2e7d32"></div><span class="leg-label">SMB / Mid-market</span><span class="leg-count" id="lc-smb"></span></div>
+  <div class="leg-row filterable" data-filter-group="focus" data-filter-key="gov"><div class="leg-dot" style="background:#b71c1c"></div><span class="leg-label">Government / Military</span><span class="leg-count" id="lc-gov"></span></div>
+  <div class="leg-row filterable" data-filter-group="focus" data-filter-key="ent-smb"><div class="leg-dot" style="background:#e65100"></div><span class="leg-label">Enterprise + SMB</span><span class="leg-count" id="lc-ent-smb"></span></div>
+  <div class="leg-row filterable" data-filter-group="focus" data-filter-key="ent-gov"><div class="leg-dot" style="background:#6a1b9a"></div><span class="leg-label">Enterprise + Government</span><span class="leg-count" id="lc-ent-gov"></span></div>
+  <div class="leg-row filterable" data-filter-group="focus" data-filter-key="all"><div class="leg-dot" style="background:#00838f"></div><span class="leg-label">All Segments</span><span class="leg-count" id="lc-all"></span></div>
+  <hr style="border-color:#1e1e3a;margin:10px 0">
+  <h3>Marker Style</h3>
+  <div class="leg-row filterable" data-filter-group="style" data-filter-key="startup"><div class="leg-dot startup-dot" style="background:#555"></div><span class="leg-label" style="color:#FF8F00">★ New Startup (founded ≥ 2022)</span><span class="leg-count" id="lc-startup"></span></div>
+  <div class="leg-row filterable" data-filter-group="style" data-filter-key="estab"><div class="leg-dot" style="background:#555"></div><span class="leg-label">Established (founded &lt; 2022)</span><span class="leg-count" id="lc-estab"></span></div>
+  <hr style="border-color:#1e1e3a;margin:10px 0">
+  <h3>Revenue (Size)</h3>
+  <div class="leg-row filterable" data-filter-group="tier" data-filter-key="1" style="gap:6px;margin-bottom:5px">
+    <svg width="38" height="20" style="flex-shrink:0"><circle cx="19" cy="10" r="9" fill="#888" fill-opacity="0.6" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/></svg>
+    <span class="leg-label" style="font-size:11px">&gt; $5 B</span>
+  </div>
+  <div class="leg-row filterable" data-filter-group="tier" data-filter-key="2" style="gap:6px;margin-bottom:5px">
+    <svg width="38" height="18" style="flex-shrink:0"><circle cx="19" cy="9" r="7" fill="#888" fill-opacity="0.6" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/></svg>
+    <span class="leg-label" style="font-size:11px">$1 B – $5 B</span>
+  </div>
+  <div class="leg-row filterable" data-filter-group="tier" data-filter-key="3" style="gap:6px;margin-bottom:5px">
+    <svg width="38" height="14" style="flex-shrink:0"><circle cx="19" cy="7" r="5.5" fill="#888" fill-opacity="0.6" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/></svg>
+    <span class="leg-label" style="font-size:11px">$200 M – $1 B</span>
+  </div>
+  <div class="leg-row filterable" data-filter-group="tier" data-filter-key="4" style="gap:6px;margin-bottom:5px">
+    <svg width="38" height="12" style="flex-shrink:0"><circle cx="19" cy="6" r="4" fill="#888" fill-opacity="0.6" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/></svg>
+    <span class="leg-label" style="font-size:11px">$50 M – $200 M</span>
+  </div>
+  <div class="leg-row filterable" data-filter-group="tier" data-filter-key="5" style="gap:6px">
+    <svg width="38" height="10" style="flex-shrink:0"><circle cx="19" cy="5" r="3" fill="#888" fill-opacity="0.6" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/></svg>
+    <span class="leg-label" style="font-size:11px">&lt; $50 M / Undisclosed</span>
+  </div>
+  <button id="leg-clear-btn">✕ Clear filters</button>
+</div>
+
+<div id="filter-badge">
+  <h3>Filters</h3>
+  <div class="fb-row"><div class="fb-dot"></div><span class="fb-label">Own product companies (pentest · defense · GRC)</span></div>
+  <div class="fb-row"><div class="fb-dot new"></div><span class="fb-label" style="color:#FF8F00">★ New startups: founded ≥ 2022</span></div>
+  <hr style="border-color:#1e1e3a;margin:8px 0">
+  <div class="fb-toggle">
+    <input type="checkbox" id="f-eu-only">
+    <label for="f-eu-only">🇪🇺 Show EU countries only</label>
+  </div>
+  <div style="margin-top:6px">
+    <label for="country-select" style="font-size:10px;color:#777;text-transform:uppercase;letter-spacing:.8px">Filter by Country</label>
+    <select id="country-select">
+      <option value="">All Countries</option>
+    </select>
+  </div>
+  <hr style="border-color:#1e1e3a;margin:8px 0">
+  <div class="fb-toggle">
+    <input type="checkbox" id="f-startup-only">
+    <label for="f-startup-only">Show new startups only (founded ≥ 2022)</label>
+  </div>
+  <div class="fb-toggle">
+    <input type="checkbox" id="f-fav-only">
+    <label for="f-fav-only">★ Show watchlist only</label>
+  </div>
+</div>
+
+<div id="map" style="margin-top:38px;height:calc(100vh - 38px)"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map = L.map('map',{center:[30,10],zoom:2,zoomControl:true});
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+  attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:19
+}).addTo(map);
+
+const TRADIUS={1:17,2:13,3:10,4:8,5:6};
+const TLABEL={1:'> $5 B',2:'$1 B – $5 B',3:'$200 M – $1 B',4:'$50 M – $200 M',5:'< $50 M / Undisclosed'};
+
+const CCOLOR={
+  'ent':'#1565c0','smb':'#2e7d32','gov':'#b71c1c',
+  'ent-smb':'#e65100','ent-gov':'#6a1b9a','all':'#00838f'
+};
+const CLABEL={
+  'ent':'Enterprise','smb':'SMB / Mid-market','gov':'Government / Military',
+  'ent-smb':'Enterprise + SMB','ent-gov':'Enterprise + Government','all':'All Segments'
+};
+function getCustKey(f){
+  f=f.toLowerCase();
+  const S=/smb|consumer|mid.?market|msp|channel|developer/.test(f);
+  const E=/enterprise|mid.?market/.test(f);
+  const G=/government|military|federal|intelligence|nato|critical\s*infra|classified|gov(?!ernance)/.test(f);
+  if(S&&E&&G) return 'all'; if(E&&G) return 'ent-gov';
+  if(S&&E) return 'ent-smb'; if(S&&G) return 'all';
+  if(G) return 'gov'; if(S) return 'smb'; return 'ent';
+}
+const STARTUP_FROM = 2022; // companies founded >= this year are marked as startups
+
+const COMPANY_URLS={
+  'PortSwigger':'https://portswigger.net',
+  'Snyk':'https://snyk.io',
+  'Offensity':'https://www.offensity.com/en/',
+  'WiseBee':'https://wisebee.ai/',
+  'AppCheck':'https://appcheck-ng.com',
+  'Intruder.io':'https://www.intruder.io',
+  'Mindgard':'https://mindgard.ai',
+  'Detectify':'https://detectify.com',
+  'Outpost24':'https://outpost24.com',
+  'Holm Security':'https://www.holmsecurity.com',
+  'YesWeHack':'https://www.yeswehack.com',
+  'Filigran':'https://filigran.io',
+  'Patrowl':'https://patrowl.io',
+  'Escape':'https://escape.tech',
+  'Arsen':'https://arsen.co',
+  'Hadrian':'https://hadrian.io',
+  'Zerocopter':'https://www.zerocopter.com',
+  'BreachLock':'https://www.breachlock.com',
+  'Aikido Security':'https://www.aikido.dev',
+  'Intigriti':'https://www.intigriti.com',
+  'Pentest-Tools.com':'https://pentest-tools.com',
+  'ImmuniWeb':'https://www.immuniweb.com',
+  'Greenbone':'https://www.greenbone.net',
+  'Edgescan':'https://www.edgescan.com',
+  'Cy4Gate':'https://www.cy4gate.com',
+  'Pikered':'https://pikered.com',
+  'Zynap':'https://www.zynap.com',
+  'Equixly':'https://www.equixly.com',
+  'Ethiack':'https://www.ethiack.com',
+  'Trickest':'https://trickest.com',
+  'Penetrify':'https://www.penetrify.cloud/',
+  'Phished':'https://phished.io',
+  'Tracebit':'https://tracebit.com',
+  'MokN':'https://www.mokn.io',
+  'Yogosha':'https://yogosha.com',
+  'CounterCraft':'https://www.countercraft.eu',
+  'Nordic Defender':'https://nordicdefender.com',
+  'Hackrate':'https://hackrate.com',
+  'Enginsight':'https://enginsight.com',
+  'ONEKEY':'https://www.onekey.com',
+  'CybSafe':'https://www.cybsafe.com',
+  'Strike':'https://www.strike.sh',
+  'AISLE':'https://aisle.com',
+  'Rapid7':'https://www.rapid7.com',
+  'Tenable':'https://www.tenable.com',
+  'Qualys':'https://www.qualys.com',
+  'Checkmarx':'https://checkmarx.com',
+  'NetSPI':'https://www.netspi.com',
+  'HackerOne':'https://www.hackerone.com',
+  'Bugcrowd':'https://www.bugcrowd.com',
+  'Synack':'https://www.synack.com',
+  'Cobalt.io':'https://www.cobalt.io',
+  'Pentera':'https://pentera.io',
+  'Astra Security':'https://www.getastra.com',
+  'Hacktron AI':'https://www.hacktron.ai',
+  'XBOW':'https://xbow.com',
+  'Horizon3.ai':'https://www.horizon3.ai',
+  'RunSybil':'https://runsybil.com',
+  'Novee':'https://novee.ai',
+  'CrowdStrike':'https://www.crowdstrike.com',
+  'Palo Alto Networks':'https://www.paloaltonetworks.com',
+  'Fortinet':'https://www.fortinet.com',
+  'SentinelOne':'https://www.sentinelone.com',
+  'Zscaler':'https://www.zscaler.com',
+  'Wiz':'https://www.wiz.io',
+  'Check Point':'https://www.checkpoint.com',
+  'Trend Micro':'https://www.trendmicro.com',
+  'Sophos':'https://www.sophos.com',
+  'Darktrace':'https://darktrace.com',
+  'NCC Group':'https://www.nccgroup.com',
+  'Secureworks':'https://www.secureworks.com',
+  'Huntress':'https://www.huntress.com',
+  'CyberArk':'https://www.cyberark.com',
+  'Armis':'https://www.armis.com',
+  'Cato Networks':'https://www.catonetworks.com',
+  'Axonius':'https://www.axonius.com',
+  'Cymulate':'https://cymulate.com',
+  'Cynet':'https://www.cynet.com',
+  'Deep Instinct':'https://www.deepinstinct.com',
+  'Orca Security':'https://orca.security',
+  'Claroty':'https://claroty.com',
+  'Arctic Wolf':'https://arcticwolf.com',
+  'Abnormal AI':'https://abnormal.ai',
+  'ESET':'https://www.eset.com',
+  'Bitdefender':'https://www.bitdefender.com',
+  'WithSecure':'https://www.withsecure.com',
+  'Eye Security':'https://www.eye.security',
+  'Tines':'https://www.tines.com',
+  'Sekoia.io':'https://www.sekoia.io',
+  'Stormshield':'https://www.stormshield.com',
+  'SafeBreach':'https://www.safebreach.com',
+  'AttackIQ':'https://www.attackiq.com',
+  'Picus Security':'https://www.picussecurity.com',
+  'CyCognito':'https://www.cycognito.com',
+  'FireCompass':'https://www.firecompass.com',
+  'Validato':'https://validato.io',
+};
+
+const COMPANY_NEWS={
+  'PortSwigger':'https://portswigger.net/blog',
+  'Snyk':'https://snyk.io/blog/',
+  'Offensity':'https://www.offensity.com/en/blog/',
+  'WiseBee':'https://wisebee.ai/blog',
+  'AppCheck':'https://appcheck-ng.com/security-blog/',
+  'Intruder.io':'https://www.intruder.io/research',
+  'Mindgard':'https://mindgard.ai/blog',
+  'Detectify':'https://detectify.com/newsroom/',
+  'Outpost24':'https://outpost24.com/about/news/',
+  'Holm Security':'https://www.holmsecurity.com/blog',
+  'YesWeHack':'https://blog.yeswehack.com/',
+  'Filigran':'https://filigran.io/newsroom/',
+  'Patrowl':'https://www.patrowl.io/en/actualites',
+  'Escape':'https://escape.tech/blog/',
+  'Arsen':'https://arsen.co/blog',
+  'Hadrian':'https://hadrian.io/resources/',
+  'Zerocopter':'https://www.zerocopter.com/blog',
+  'BreachLock':'https://www.breachlock.com/resources/news-press/',
+  'Aikido Security':'https://www.aikido.dev/blog',
+  'Intigriti':'https://www.intigriti.com/blog',
+  'Pentest-Tools.com':'https://pentest-tools.com/blog',
+  'ImmuniWeb':'https://www.immuniweb.com/blog/',
+  'Greenbone':'https://www.greenbone.net/en/blog/',
+  'Edgescan':'https://www.edgescan.com/blog/',
+  'Cy4Gate':'https://www.cy4gate.com/news/',
+  'Pikered':'https://www.pikered.com/en/learn/',
+  'Zynap':'https://www.zynap.com/blog',
+  'Equixly':'https://www.equixly.com/blog',
+  'Ethiack':'https://www.ethiack.com/blog',
+  'Trickest':'https://trickest.com/blog',
+  'Penetrify':'https://www.penetrify.cloud/blog',
+  'Phished':'https://phished.io/blog',
+  'Tracebit':'https://tracebit.com/blog',
+  'MokN':'https://www.mokn.io/',
+  'Yogosha':'https://yogosha.com/blog',
+  'CounterCraft':'https://www.countercraft.eu/blog/',
+  'Nordic Defender':'https://nordicdefender.com/blog',
+  'Hackrate':'https://hackrate.com/blog',
+  'Enginsight':'https://enginsight.com/blog/',
+  'ONEKEY':'https://onekey.com/news/',
+  'CybSafe':'https://www.cybsafe.com/press-releases/',
+  'Strike':'https://www.strike.sh/blog',
+  'AISLE':'https://aisle.com/blog',
+  'Rapid7':'https://www.rapid7.com/about/press-releases/',
+  'Tenable':'https://www.tenable.com/press-releases',
+  'Qualys':'https://www.qualys.com/company/newsroom/',
+  'Checkmarx':'https://checkmarx.com/company/news/',
+  'NetSPI':'https://www.netspi.com/news/',
+  'HackerOne':'https://www.hackerone.com/press',
+  'Bugcrowd':'https://www.bugcrowd.com/news/',
+  'Synack':'https://www.synack.com/blog/',
+  'Cobalt.io':'https://www.cobalt.io/press-release',
+  'Pentera':'https://pentera.io/news/',
+  'Astra Security':'https://www.getastra.com/blog/',
+  'Hacktron AI':'https://www.hacktron.ai/blog',
+  'XBOW':'https://xbow.com/blog',
+  'Horizon3.ai':'https://www.horizon3.ai/news/',
+  'RunSybil':'https://runsybil.com',
+  'Novee':'https://novee.ai',
+  'CrowdStrike':'https://www.crowdstrike.com/news/',
+  'Palo Alto Networks':'https://www.paloaltonetworks.com/company/press',
+  'Fortinet':'https://www.fortinet.com/corporate/about-us/newsroom/press-releases',
+  'SentinelOne':'https://www.sentinelone.com/press/',
+  'Zscaler':'https://www.zscaler.com/company/news-press',
+  'Wiz':'https://www.wiz.io/blog',
+  'Check Point':'https://www.checkpoint.com/press/',
+  'Trend Micro':'https://newsroom.trendmicro.com/',
+  'Sophos':'https://www.sophos.com/en-us/press-office',
+  'Darktrace':'https://darktrace.com/news/',
+  'NCC Group':'https://www.nccgroup.com/newsroom/',
+  'Secureworks':'https://www.secureworks.com/about/press',
+  'Huntress':'https://www.huntress.com/blog',
+  'CyberArk':'https://www.cyberark.com/company/newsroom/press-releases/',
+  'Armis':'https://www.armis.com/company/news/',
+  'Cato Networks':'https://www.catonetworks.com/news/',
+  'Axonius':'https://www.axonius.com/company/news',
+  'Cymulate':'https://cymulate.com/news/',
+  'Cynet':'https://www.cynet.com/news/',
+  'Deep Instinct':'https://www.deepinstinct.com/newsroom',
+  'Orca Security':'https://orca.security/resources/news/',
+  'Claroty':'https://claroty.com/company/news',
+  'Arctic Wolf':'https://arcticwolf.com/resources/category/press-releases/',
+  'Abnormal AI':'https://abnormal.ai/about/news',
+  'ESET':'https://www.eset.com/int/about/newsroom/',
+  'Bitdefender':'https://www.bitdefender.com/en-us/news/',
+  'WithSecure':'https://www2.withsecure.com/en/whats-new/pressroom',
+  'Eye Security':'https://www.eye.security/blog',
+  'Tines':'https://www.tines.com/blog',
+  'Sekoia.io':'https://www.sekoia.io/en/blog/',
+  'Stormshield':'https://www.stormshield.com/news/',
+  'SafeBreach':'https://www.safebreach.com/blog/',
+  'AttackIQ':'https://www.attackiq.com/blog/',
+  'Picus Security':'https://www.picussecurity.com/blog',
+  'CyCognito':'https://www.cycognito.com/blog/',
+  'FireCompass':'https://www.firecompass.com/blog/',
+  'Validato':'https://validato.io/blog',
+};
+
+const CATCOLOR={
+  'PenTest/PTaaS':'#4CAF50','PenTest/AppSec':'#66BB6A',
+  'Defense/Endpoint':'#42A5F5','GRC/Compliance':'#AB47BC',
+  'Defense/MDR':'#26C6DA','Defense/SOAR':'#EC407A',
+  'BAS/CTEM':'#FF7043'
+};
+
+const COMPANY_PRICE={
+  'PortSwigger':    'Free Community edition; Pro $475/user/yr; Enterprise DAST from ~$6,850/yr',
+  'Snyk':           'Free (10 devs, limited); Team $25/dev/mo; Enterprise custom',
+  'Offensity':      'Free (€0, limited); Starter €49/mo; Professional €389/mo; Enterprise custom',
+  'WiseBee':        'Custom / contact sales (per org size)',
+  'AppCheck':       'Custom / contact sales',
+  'Intruder.io':    'Essential $149/mo; Cloud $299/mo; Pro $499/mo; Enterprise custom',
+  'Mindgard':       'Custom / contact sales',
+  'Detectify':      'App Scanning from $90/mo; Surface Monitoring from $302/mo; Enterprise custom',
+  'Outpost24':      'Custom / contact sales (modular, per asset)',
+  'Holm Security':  'Custom / contact sales (per asset / module)',
+  'YesWeHack':      'Custom — reward pool + platform fee; VDP contact sales',
+  'Filigran':       'Free open-source (self-hosted OpenCTI/OpenBAS); Enterprise SaaS custom',
+  'Patrowl':        'Custom / contact sales',
+  'Escape':         'Tiered by API count; available on AWS Marketplace; contact sales',
+  'Arsen':          'Custom / contact sales (per employee count)',
+  'Hadrian':        'Custom / contact sales (per attack surface size)',
+  'Zerocopter':     'Custom / contact sales (per program scope)',
+  'BreachLock':     'Web app pentest from ~$3,500/engagement; continuous from ~$1,000/mo; Enterprise custom',
+  'Aikido Security':'Free tier; Basic $350/mo (10 devs); Pro $700/mo; Advanced $1,050/mo; Enterprise custom',
+  'Intigriti':      'VDP from ~€499/mo; bug bounty programs custom per scope',
+  'Pentest-Tools.com':'Free (limited); NetSec $95/mo; WebNetSec $140/mo; Pentest Suite $190/mo',
+  'ImmuniWeb':      'Free community scan; paid plans per engagement / custom subscription',
+  'Greenbone':      'OpenVAS Community free (open-source); OPENVAS BASIC €2,524/yr; enterprise appliances from €26K',
+  'Edgescan':       'Custom / contact sales (per asset count)',
+  'Pikered':        'Custom / contact sales',
+  'Zynap':          'Custom / contact sales (early stage)',
+  'Equixly':        'Custom / contact sales (per API endpoints)',
+  'Ethiack':        'Launch €1,790/yr (50 assets); Pro €3,490/yr (100 assets); Premium €9,490/yr; Enterprise custom',
+  'Trickest':       'Custom / contact sales',
+  'Penetrify':      'From ~$50/mo; higher tiers custom',
+  'Tracebit':       'Custom / contact sales',
+  'MokN':           'Custom / contact sales',
+  'Yogosha':        'Custom — per-vulnerability bounty + platform fee; contact sales',
+  'CounterCraft':   'Custom / contact sales (enterprise/government)',
+  'Nordic Defender':'Custom / contact sales',
+  'Hackrate':       'Custom / contact sales (per program scope)',
+  'Enginsight':     'Small Business from €8.91/mo; SaaS from €26.99/mo; On-Premises custom',
+  'ONEKEY':         'Custom / contact sales (per device/product line)',
+  'CybSafe':        'Custom / contact sales (per seat/yr)',
+  'Strike':         'From ~$999/pentest engagement; bug bounty programs custom',
+  'AISLE':          'Not disclosed / contact sales (early access)',
+  'SafeBreach':     'Custom / contact sales (enterprise-only; annual platform fee)',
+  'AttackIQ':       'Custom / contact sales (enterprise-only; MITRE ATT&CK framework licensing)',
+  'Picus Security': 'Custom / contact sales (enterprise + mid-market; per-threat-scenario)',
+  'CyCognito':      'Custom / contact sales (per attack surface asset count)',
+  'FireCompass':    'Custom / contact sales (enterprise)',
+  'Pentera':        '~EUR 46,000/yr minimum (mandatory on-prem; enterprise-only; no SMB tier)',
+  'Validato':       'Not disclosed / contact sales (early stage)',
+};
+
+// ── COMPANY DATA ─────────────────────────────────────────────────────────────
+// Fields: n, lat, lon, t(ier), cat, country, city, focus, rev, ebitda, fund, gov, founded, tool, note
+// founded >= STARTUP_FROM (2022) → orange ring + startup banner in popup
+const C=[
+
+// ══════════ UNITED KINGDOM ══════════
+
+{n:'PortSwigger',lat:53.303,lon:-2.374,t:4,
+ cat:'PenTest/AppSec',country:'UK',city:'Knutsford, Cheshire',
+ focus:'Enterprise, SMB, Security professionals',
+ rev:'£35.9M (~$46M, FY2023, +21% YoY); £29.7M (FY2022); ~£43M (FY2024 est.)',ebitda:'Profitable; £10.2M post-tax profit FY2023; £8M dividend paid',
+ fund:'$112M PE round (Jun 2024, Brighton Park Capital); previously bootstrapped by founder Dafydd Stuttard',gov:'',
+ revData:[{y:'FY22',v:38},{y:'FY23',v:46},{y:'FY24',v:55,e:true}],
+ founded:2004,
+ tool:'Burp Suite Professional + Enterprise Edition',
+ note:"World's #1 web application penetration testing tool, used in 95%+ of professional web pentests globally; Burp Suite Enterprise for automated DevSecOps scanning at scale; Web Security Academy free training; millions of users worldwide"},
+
+{n:'Snyk',lat:51.510,lon:-0.130,t:3,
+ cat:'PenTest/AppSec',country:'USA/UK',city:'London (EU HQ)',
+ focus:'Enterprise, Developers',
+ rev:'$278M invoiced revenue (FY2024, +26% YoY); $300M+ ARR (Dec 2024); $13B valuation (Series G)',ebitda:'Pre-profit (targeting 2026 IPO)',
+ fund:'VC $530M+ raised (Coatue, Tiger Global, Goldman Sachs, Atlassian Ventures); Series G; CEO targeting 2026 IPO',gov:'',
+ revData:[{y:'FY22',v:147},{y:'FY23',v:220},{y:'FY24',v:278}],
+ founded:2015,
+ tool:'Snyk Code (SAST) + Snyk Open Source (SCA) + Snyk API & Web (DAST)',
+ note:'Developer-first full-stack AppSec; DAST added via acquisition of Portuguese startup Probely (Nov 2024); Snyk Code SAST crossed $100M ARR Oct 2024; 3M+ developers; partnership with SentinelOne on AI agent security (Mar 2026)'},
+
+{n:'AppCheck',lat:54.978,lon:-1.612,t:5,
+ cat:'PenTest/AppSec',country:'UK',city:'Newcastle upon Tyne',
+ focus:'Enterprise, SMB',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'Part of Claranet Group (large UK MSP/security group)',gov:'',
+ founded:2014,
+ tool:'AppCheck Vulnerability Scanner (DAST — web, APIs, networks, cloud)',
+ note:'UK-built DAST scanner; browser-based crawling; GoScript custom language for complex user journeys; CVE Numbering Authority (CNA); originated as internal pentest tool at SEC-1/Claranet'},
+
+{n:'Intruder.io',lat:51.520,lon:-0.115,t:5,
+ cat:'PenTest/AppSec',country:'UK',city:'London',
+ focus:'Enterprise, SMB',
+ rev:'$16.1M ARR (FY2024); enterprise ARR +81% YoY (FY2025)',ebitda:'Not disclosed',
+ fund:'~$1.5 M raised; lean/profitable growth; GCHQ Cyber Accelerator alumni',gov:'',
+ revData:[{y:'FY22',v:7.5,e:true},{y:'FY23',v:10,e:true},{y:'FY24',v:16.1}],
+ founded:2015,
+ tool:'Intruder Vulnerability Scanner + Attack Surface Monitoring',
+ note:'Cloud-based automated vulnerability scanner + ASM; 140,000+ weakness checks; 3,000+ customers; #1 Deloitte UK Tech Fast 50 cybersecurity company 2023; fastest threat scans within hours of new CVEs'},
+
+{n:'Mindgard',lat:51.505,lon:-0.145,t:5,
+ cat:'PenTest/AppSec',country:'UK',city:'London',
+ focus:'Enterprise',
+ rev:'Not disclosed (early revenue stage)',ebitda:'Pre-profit',
+ fund:'$11.6 M total — $8 M Series A (Dec 2024, .406 Ventures); Lancaster University spinout',gov:'',
+ founded:2022,
+ tool:'Mindgard DAST-AI — continuous automated red teaming for LLMs and AI agents',
+ note:'DAST for AI: continuously red-teams LLMs, AI agents, and multimodal models; 10+ years of academic AI security research commercialized; UK Most Innovative Cyber SME 2024; offices in London and Boston'},
+
+// ══════════ SWEDEN ══════════
+
+{n:'Detectify',lat:59.329,lon:18.069,t:4,
+ cat:'PenTest/AppSec',country:'Sweden',city:'Stockholm',
+ focus:'Enterprise, Dev teams',
+ rev:'~$25 M ARR (est.)',ebitda:'Not disclosed',
+ fund:'$42.1 M raised (Insight Partners, Inventure, Balderton Capital); acquired by Insight Partners 2024',gov:'',
+ revData:[{y:'FY22',v:8},{y:'FY23',v:20,e:true},{y:'FY24',v:25,e:true}],
+ founded:2013,
+ tool:'Detectify EASM Platform — Surface Monitoring + Application Scanning (DAST)',
+ note:'EASM + automated web app vulnerability scanner using DAST methodology; crowdsourced payload library from elite ethical hacker community; 1,000+ vulnerability checks; 99.7% accuracy'},
+
+{n:'Outpost24',lat:56.161,lon:15.587,t:4,
+ cat:'PenTest/AppSec',country:'Sweden',city:'Karlskrona',
+ focus:'Enterprise, SMB',
+ rev:'SEK 527M (~$50M, FY2023, +9% YoY); SEK 442M (FY2022); ~SEK 600M (FY2024 est.)',ebitda:'Negative (investment phase)',
+ fund:'PE: Vitruvian Partners (majority buyout 2022, follow-on Dec 2025); offices across EU',gov:'',
+ revData:[{y:'FY22',v:44},{y:'FY23',v:50},{y:'FY24',v:57,e:true}],
+ founded:2001,
+ tool:'OUTSCAN NX (VM scanner) + EASM platform + CyberFlex (EASM + PTaaS)',
+ note:'Only European vendor named Overall Leader in KuppingerCole 2025 ASM Leadership Compass; CyberFlex integrates EASM + PTaaS; Challenger in GigaOm 2025 PTaaS Radar; acquired Specops 2023; 200+ employees'},
+
+{n:'Holm Security',lat:59.340,lon:18.082,t:5,
+ cat:'PenTest/AppSec',country:'Sweden',city:'Stockholm',
+ focus:'Enterprise, SMB',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'€4 M raised (Subvenio Invest)',gov:'',
+ founded:2015,
+ tool:'Holm Security VMP — Vulnerability Management Platform',
+ note:'"Made in Europe" next-gen VM platform; systems, workstations, network devices, IoT, OT, Kubernetes, web apps, cloud, APIs; AI-enriched risk prioritization; NIS2 / GDPR / ISO 27001 / PCI DSS compliance'},
+
+// ══════════ FRANCE ══════════
+
+{n:'YesWeHack',lat:48.875,lon:2.340,t:4,
+ cat:'PenTest/PTaaS',country:'France',city:'Paris',
+ focus:'Enterprise, Government, MSSP',
+ rev:'~€14M ARR (FY2024 est.); 6x ARR growth since 2021 (per Series C press release); Series C: €26M (Jun 2024)',ebitda:'Pre-profit (loss-making in investment phase)',
+ fund:'VC: Series C €26M (Jun 2024); total ~€50M+ raised; 100+ employees; ISO 27001/27017; CREST accredited',gov:'',
+ revData:[{y:'FY22',v:6,e:true},{y:'FY23',v:9,e:true},{y:'FY24',v:14,e:true}],
+ founded:2015,
+ tool:"YesWeHack Platform — Bug Bounty + VDP + Pentest Management + ASM + Dojo training",
+ note:"Europe's #1 bug bounty platform; 125,000+ ethical hackers; €60M+ in bounties; EU-based infrastructure; European Commission + French/German/Finnish government clients"},
+
+{n:'Filigran',lat:48.866,lon:2.333,t:4,
+ cat:'PenTest/AppSec',country:'France',city:'Paris',
+ focus:'Enterprise, Government, MSSP',
+ rev:'€2M ARR (FY2023, confirmed); ~€10M ARR (FY2024 est.); ~$20M (FY2025, Latka); €100M ARR target by 2028',ebitda:'Pre-profit',
+ fund:'$58 M Series C (Oct 2025, Eurazeo, Deutsche Telekom T.Capital, Accel, Insight Partners); >$100 M total raised; ~223 employees',gov:'',
+ revData:[{y:'FY23',v:2.2},{y:'FY24',v:10,e:true},{y:'FY25',v:19.7,e:true}],
+ founded:2022,
+ tool:'OpenBAS / OpenAEV — open-source Breach & Attack Simulation (BAS) platform',
+ note:'Owns OpenCTI (CTI) + OpenBAS/OpenAEV (BAS / Adversarial Exposure Validation); 6,000+ deployments incl. FBI and European Commission; MITRE ATT&CK aligned; full kill chain adversary emulation + crisis exercises'},
+
+{n:'Patrowl',lat:48.857,lon:2.357,t:5,
+ cat:'PenTest/AppSec',country:'France',city:'Paris',
+ focus:'Enterprise, MSSP',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'VC backed; ~60 customers; 100% French SaaS',gov:'',
+ founded:2020,
+ tool:'Patrowl CAASM/EASM + Automated Penetration Testing engine',
+ note:'French SaaS; own engine continuously orchestrates EASM + automated pentest + human expert validation; zero false positives SLA; CTI-fed attack scenarios; continuous PTaaS model; CREST member'},
+
+{n:'Escape',lat:48.855,lon:2.358,t:5,
+ cat:'PenTest/AppSec',country:'France',city:'Paris',
+ focus:'Enterprise, Developers',
+ rev:'Not disclosed (early revenue stage); 2,000+ enterprise teams',ebitda:'Pre-profit',
+ fund:'~$20M+ total — seed 2022 (Eutopia, Frst Capital) + $18M Series A (Mar 2026, Balderton Capital + Y Combinator); YC-backed',gov:'',
+ founded:2021,
+ tool:'Escape — AI-driven DAST, API security testing + offensive pentesting agents',
+ note:'AI-powered API security testing platform with automated DAST for GraphQL and REST APIs; offensive pentesting agents find business logic vulnerabilities and OWASP API Top 10; CI/CD integration; YC-backed; Series A $18M led by Balderton Capital (Mar 2026); 2,000+ enterprise teams; founded by former Airbus team; one of fastest-growing EU offensive security startups'},
+
+{n:'Arsen',lat:48.879,lon:2.355,t:5,
+ cat:'PenTest/AppSec',country:'France',city:'Paris',
+ focus:'Enterprise, SMB',
+ rev:'Not disclosed (early revenue stage)',ebitda:'Pre-profit',
+ fund:'VC backed; undisclosed seed round',gov:'',
+ founded:2020,
+ tool:'Arsen Platform — automated phishing simulation & social engineering testing',
+ note:'Automated social engineering testing platform; AI-powered phishing campaigns simulating real attacker techniques; behavioral analytics measuring employee susceptibility; GDPR-compliant; used by financial institutions and enterprises across France; NIS2 awareness compliance tool'},
+
+// ══════════ NETHERLANDS ══════════
+
+{n:'Hadrian',lat:52.378,lon:4.912,t:5,
+ cat:'PenTest/PTaaS',country:'Netherlands',city:'Amsterdam',
+ focus:'Enterprise',
+ rev:'Not disclosed (early revenue stage)',ebitda:'Pre-profit',
+ fund:'€10.5 M seed (Jun 2022, Notion Capital, Peak Capital, Vu Ventures); additional rounds ongoing',gov:'',
+ founded:2021,
+ tool:'Hadrian Agentic Pentesting Platform — EASM + Continuous Automated Red Teaming (CART) + CTEM',
+ note:'Autonomous AI-driven offensive security; agentic AI discovers all exposed assets (incl. shadow IT), then safely simulates real-world attacks to validate exploitability; Gartner Hype Cycle recognized; Frost & Sullivan New Product Innovation Award; GigaOm Radar Leader 2 consecutive years'},
+
+{n:'BreachLock',lat:52.366,lon:4.900,t:5,
+ cat:'PenTest/PTaaS',country:'Netherlands/USA',city:'Amsterdam (EU HQ)',
+ focus:'SMB, Enterprise',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'VC early stage; Dutch co-founders; US + EU offices',gov:'',
+ founded:2019,
+ tool:'BreachLock Unified Platform — AI-augmented PTaaS + ASM + continuous pentest',
+ note:'Own AI-augmented PTaaS platform; integrates ASM, continuous pentesting, and red teaming in one portal; automated scanning + certified human testers; real-time dashboard; covers network, web app, API, cloud; DevSecOps integrations'},
+
+{n:'Zerocopter',lat:52.356,lon:4.925,t:5,
+ cat:'PenTest/PTaaS',country:'Netherlands',city:'Amsterdam',
+ focus:'Enterprise, SMB',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'Private; founded by hackers; EU-native; bootstrapped/early-stage',gov:'',
+ founded:2014,
+ tool:'Zerocopter Platform — continuous PTaaS + bug bounty + VDP with smart automation',
+ note:'Founded by ethical hackers; combines vetted hacker community with smart automation for 360° continuous security; PTaaS + structured pentesting + bug bounty + VDP in one platform; continuous security model replacing one-off engagements; EU-native data handling'},
+
+// ══════════ AUSTRIA ══════════
+
+{n:'Offensity',lat:48.210,lon:16.363,t:5,
+ cat:'PenTest/PTaaS',country:'Austria',city:'Vienna',
+ focus:'Enterprise, SMB',
+ rev:'Not disclosed (product within A1 Digital)',ebitda:'Not disclosed',
+ fund:'Internal product of A1 Digital International GmbH; part of A1 Group (Austria\'s largest telecom, ~€4.7B revenue); no external VC funding',gov:'',
+ founded:2018,
+ tool:'Offensity — automated continuous external vulnerability scanner; SSL/TLS cert monitoring; dark web credential leak detection',
+ note:'Emerged from A1\'s internal intrapreneurship program after the 2017 Apache Struts incident; 20,000+ scanning hours/month; 10,000+ continuously monitored target systems; agentless external-only scanning — no installation required; pricing: Free → Starter €49/mo → Professional €389/mo → Enterprise custom; distributed via A1 Digital and Arrow ECS Switzerland; co-founders: Aron Molnar, Daniel Endresz, Philipp Mirtl'},
+
+// ══════════ BULGARIA ══════════
+
+{n:'WiseBee',lat:42.698,lon:23.322,t:5,
+ cat:'PenTest/PTaaS',country:'Bulgaria',city:'Sofia',
+ focus:'Enterprise, SMB',
+ rev:'Not disclosed (pre-revenue / early stage)',ebitda:'Pre-profit',
+ fund:'$2.5M pre-seed (Aug 2025, Frontline Ventures + BrightCap Ventures)',gov:'',
+ founded:2024,
+ tool:'WiseBee — autonomous cyber defense platform: attack surface management, vendor risk management, AI-powered autonomous threat detection and remediation',
+ note:'US-Bulgarian co-HQ (New York + Sofia); founded by Stoyan Stoyanov (CEO) and Taha Kazi (CDO); autonomous AI agents monitor, detect, and neutralise threats for mid-market organisations; customers include a Bulgarian bank, pan-European fintech (DORA-regulated), US local government, and a global fintech unicorn; targets the gap between enterprise-grade MDR and SMB budgets'},
+
+// ══════════ BELGIUM ══════════
+
+{n:'Aikido Security',lat:51.054,lon:3.717,t:5,
+ cat:'PenTest/AppSec',country:'Belgium',city:'Ghent',
+ focus:'SMB, Enterprise, Developers',
+ rev:"$20 M ARR (Jan 2025); 1,531% YoY growth; targeting $60 M ARR FY2026",ebitda:'Pre-profit',
+ fund:"$93.2M total — $5M seed, $17M Series A (2024, Singular/Notion Capital), $60M Series B (Jan 2026, DST Global); $1B valuation — Belgian unicorn; fastest EU cybersecurity startup to unicorn",gov:'',
+ revData:[{y:'FY24',v:1},{y:'FY25',v:20}],
+ founded:2022,
+ tool:'Aikido Unified AppSec Platform — SAST + SCA + DAST + Container + CSPM + Secrets + IaC (15+ scanners)',
+ note:"DAST 'Surface Monitoring' dynamically tests web apps and APIs; 100,000+ teams incl. Revolut, Niantic, Premier League; founded Ghent 2022; Europe's first cybersecurity unicorn of 2026; fastest-ever Belgian startup to unicorn"},
+
+{n:'Intigriti',lat:51.221,lon:4.400,t:4,
+ cat:'PenTest/PTaaS',country:'Belgium',city:'Antwerp',
+ focus:'Enterprise, Government',
+ rev:'€28.1M (~$30M, FY2024, confirmed — Belgian registry); ~€17M (FY2023 est.)',ebitda:'Not disclosed',
+ fund:'$23 M raised (2022); 100+ employees (Belgium, UK, Netherlands, South Africa)',gov:'',
+ revData:[{y:'FY22',v:6,e:true},{y:'FY23',v:18,e:true},{y:'FY24',v:30}],
+ founded:2016,
+ tool:"Intigriti Platform — Bug Bounty + VDP + Hybrid Pentest + ASM",
+ note:"Europe's leading bug bounty platform; 125,000+ ethical hackers; €60M+ in bug bounties rewarded; won European Commission bug bounty tender; CREST accredited; hybrid pentest: crowdsourced hackers + professional pen testers"},
+
+// ══════════ ROMANIA ══════════
+
+{n:'Pentest-Tools.com',lat:44.438,lon:26.097,t:5,
+ cat:'PenTest/PTaaS',country:'Romania',city:'Bucharest',
+ focus:'Enterprise, SMB, Security professionals',
+ rev:'Not disclosed (profitable)',ebitda:'Profitable',
+ fund:'Bootstrapped by founder Adrian Furtuna; ~65 employees; minimal external funding',gov:'',
+ founded:2013,
+ tool:'Pentest-Tools.com Cloud Toolkit — 20+ own tools (network scanner, web scanner, recon, CMS scanner, exploitation)',
+ note:'Cloud-based offensive security toolkit with 20+ proprietary tools; full pentest workflow: recon → network scanning → web app testing → exploitation; 2,000+ security teams in 119 countries; founded 2013; profitable and independent'},
+
+// ══════════ SWITZERLAND ══════════
+
+{n:'ImmuniWeb',lat:46.205,lon:6.147,t:5,
+ cat:'PenTest/AppSec',country:'Switzerland',city:'Geneva',
+ focus:'Enterprise, SMB',
+ rev:'$10.3M (FY2024, confirmed — Latka CEO interview); $6.6M (FY2023); +56% YoY in FY2024',ebitda:'Profitable; cashflow positive since inception',
+ fund:'Private; self-funded; no VC',gov:'',
+ revData:[{y:'FY22',v:6,e:true},{y:'FY23',v:6.6,e:true},{y:'FY24',v:10.3}],
+ founded:2019,
+ tool:'ImmuniWeb Neuron (AI scanner) + On-Demand (AI-powered pentest) + Discovery (ASM)',
+ note:'AI + human hybrid AppSec: Neuron ML scanner with zero false-positive SLA; covers web, mobile, API, cloud, network; Discovery: OSINT-based ASM + dark web monitoring; first Swiss company to achieve CWE certification; 1,000+ customers'},
+
+// ══════════ GERMANY ══════════
+
+{n:'Greenbone',lat:52.279,lon:8.047,t:5,
+ cat:'PenTest/AppSec',country:'Germany',city:'Osnabrück',
+ focus:'Enterprise, Government',
+ rev:'~$18–20M est. (FY2024); ~$18M (FY2023 est.); 27% headcount growth in 2024',ebitda:'Not disclosed',
+ fund:'Private; BSI-endorsed; established SME with strong German government client base',gov:'partial',
+ revData:[{y:'FY22',v:16,e:true},{y:'FY23',v:18,e:true},{y:'FY24',v:20,e:true}],
+ founded:2008,
+ tool:"OpenVAS / OPENVAS SCAN — world's most deployed open-source vulnerability scanner",
+ note:"Drives OpenVAS — most widely deployed open-source network vulnerability scanner globally; commercial OPENVAS SCAN appliances + Greenbone Cloud Service; endorsed by Germany's BSI; covers OT/ICS, unauthenticated + authenticated testing"},
+
+// ══════════ IRELAND ══════════
+
+{n:'Edgescan',lat:53.333,lon:-6.249,t:5,
+ cat:'PenTest/AppSec',country:'Ireland',city:'Dublin',
+ focus:'Enterprise, Government',
+ rev:'~$20M est. (FY2024); 40% CAGR since 2016; €10.5M from BGF (2020)',ebitda:'Not disclosed',
+ fund:'€10.5M BGF Ireland investment (2020); US office in NYC; founded 2011 by Eoin Keary',gov:'',
+ revData:[{y:'FY22',v:5,e:true},{y:'FY23',v:10,e:true},{y:'FY24',v:20,e:true}],
+ founded:2011,
+ tool:'Edgescan Unified Security Platform — EASM + RBVM + DAST + API Security + PTaaS',
+ note:'First fully integrated platform unifying 5 solutions: EASM + Risk-Based VM + Application Security Testing + API Security Testing + PTaaS; first in Ireland to develop continuous assessment platform with human validation + ML'},
+
+// ══════════ ITALY ══════════
+
+/* EXCLUDED — Cy4Gate: excluded from map per user request.
+{n:'Cy4Gate',lat:41.898,lon:12.489,t:4,
+ cat:'PenTest/AppSec',country:'Italy',city:'Rome',
+ focus:'Government, Military, Intelligence',
+ rev:'~€50 M (est. FY2024)',ebitda:'Moderate',
+ fund:'Public (Euronext Milan STAR: CY4); subsidiary of ELT Group (defence electronics)',gov:'partial',
+ revData:[{y:'FY22',v:36,e:true},{y:'FY23',v:44,e:true},{y:'FY24',v:54,e:true}],
+ founded:2014,
+ tool:'D-SINT (OSINT/intelligence), Epeius (mobile exploitation), Hydra (network monitoring)',
+ note:'Own cyber intelligence, OSINT, and offensive tools; D-SINT for intelligence analysis; Epeius for mobile device exploitation; Hydra for network monitoring; Italian MOD + intelligence community + judiciary; publicly listed Euronext Milan STAR'},
+*/
+
+{n:'Pikered',lat:45.464,lon:9.190,t:5,
+ cat:'PenTest/AppSec',country:'Italy',city:'Milan',
+ focus:'Enterprise, Financial sector',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'Italian private company',gov:'',
+ founded:2018,
+ tool:'ZAIUX Evo — AI-driven Breach & Attack Simulation (BAS) platform',
+ note:'Own AI-driven BAS platform simulating real intrusions from outside the network; ML-based DPZR engine emulates human attacker intelligence; lateral movement + privilege escalation + cloud hashcracking + automated reporting; TIBER-EU red teaming support'},
+
+// ══════════ SPAIN ══════════
+
+{n:'Zynap',lat:41.385,lon:2.173,t:5,
+ cat:'PenTest/AppSec',country:'Spain',city:'Barcelona',
+ focus:'Enterprise, MSSP',
+ rev:'Not disclosed (pre-revenue, product launch phase)',ebitda:'Pre-profit',
+ fund:'€5.7 M seed (Kibo Ventures, K Fund, 2024)',gov:'',
+ founded:2024,
+ tool:'Zynap Michelangelo Platform — offensive attack simulation + threat intelligence',
+ note:'Simulates cyberattacks as real adversaries would; combines dark web / Telegram threat intelligence with adversary simulation + automated incident response; founded 2024 by Daniel Solis (ex-CEO of threat intel firm Blueliv); targets MSSPs and Fortune 2000'},
+
+// ══════════ ITALY (additional) ══════════
+
+{n:'Equixly',lat:45.438,lon:10.992,t:5,
+ cat:'PenTest/AppSec',country:'Italy',city:'Verona',
+ focus:'Enterprise, Developers',
+ rev:'Not disclosed (early revenue stage)',ebitda:'Pre-profit',
+ fund:'$13.3 M total — $1.6 M Seed (Nov 2023, 360 Capital) + €10 M Series A (Dec 2025, 33N Ventures); also Alpha Intelligence Capital, JME Ventures',gov:'',
+ founded:2022,
+ tool:'Equixly — agentic AI platform for automated API penetration testing',
+ note:'Proprietary AI agents study API context, reconstruct software logic, and simulate targeted attacks that mirror skilled human hackers — finding business logic vulnerabilities that conventional DAST scanners miss; integrates into SDLC; founded by ex-IBM/UniCredit/Accenture brothers Mattia and Alessio Dalla Piazza'},
+
+// ══════════ PORTUGAL ══════════
+
+{n:'Ethiack',lat:40.211,lon:-8.429,t:5,
+ cat:'PenTest/PTaaS',country:'Portugal',city:'Coimbra',
+ focus:'Enterprise, SMB',
+ rev:'$1 M ARR (50+ clients in 9 countries)',ebitda:'Pre-profit',
+ fund:'€4 M Seed (Dec 2024, Explorer Investments, CoreAngels, Startup Wise Guys, Amena Ventures)',gov:'',
+ revData:[{y:'FY24',v:1}],
+ founded:2022,
+ tool:'Ethiack Hackbot — autonomous AI ethical hacking + CART platform',
+ note:'"Hackbot" AI engine conducts continuous automated penetration testing + attack surface mapping; paired with network of human ethical hackers for complex scenarios; WebSummit Most Promising Startup; Portugal National Innovation Award; selected for Google AI for Cybersecurity Growth Academy; $1M ARR reached within first year'},
+
+// ══════════ SERBIA ══════════
+
+{n:'Trickest',lat:44.787,lon:20.457,t:5,
+ cat:'PenTest/AppSec',country:'Serbia',city:'Belgrade',
+ focus:'Enterprise, Security professionals',
+ rev:'Not disclosed (early revenue stage)',ebitda:'Pre-profit',
+ fund:'~$3 M total — ICT Hub Venture seed (2020) + €1.4 M Seed (2021, Credo Ventures, Earlybird Digital East, Underline Ventures); angel: Daniel Dines (UiPath founder)',gov:'',
+ founded:2020,
+ tool:'Trickest — visual offensive security workflow automation and orchestration platform',
+ note:'No-code/low-code visual editor for building and running complex multi-tool security workflows; integrates 100s of open-source and commercial security tools; community library of attack workflows; founded by Nenad Zaric (formerly top-ranked HackerOne researcher for Uber, PayPal, Snapchat); backed by UiPath founder'},
+
+// ══════════ CZECH REPUBLIC ══════════
+
+{n:'Penetrify',lat:49.195,lon:16.608,t:5,
+ cat:'PenTest/PTaaS',country:'Czech Republic',city:'Brno',
+ focus:'Enterprise, SMB, Developers',
+ rev:'Not disclosed (beta / launch phase)',ebitda:'Pre-profit',
+ fund:'Not disclosed (no public funding announced at launch)',gov:'',
+ founded:2025,
+ tool:'Penetrify — fully autonomous AI red team for continuous security testing',
+ note:'AI agents "reason like human hackers" — map attack surfaces, chain vulnerabilities, exploit them, and generate production-ready code fixes; integrates into CI/CD (GitHub, GitLab, cloud); pricing from $50/month vs. tens of thousands for manual pentests; awarded Best AI Penetration Testing Platform Central Europe 2026; announced March 2026'},
+
+// ══════════ GERMANY (additional) ══════════
+
+
+// ══════════ BELGIUM (additional) ══════════
+
+/* EXCLUDED — Phished: excluded from map per user request.
+{n:'Phished',lat:50.879,lon:4.700,t:5,
+ cat:'PenTest/AppSec',country:'Belgium',city:'Leuven',
+ focus:'Enterprise, SMB',
+ rev:'~€12M ARR (FY2024, near-confirmed); ~€8M (FY2023 est.); target €20M ARR by 2027',ebitda:'Not disclosed',
+ fund:'~€16.5 M total — €1 M (angel Jo Vandebergh) + €8 M incremental + €7.5 M convertible bond (May 2024, Welvaartsfonds)',gov:'',
+ revData:[{y:'FY22',v:3,e:true},{y:'FY23',v:8,e:true},{y:'FY24',v:12,e:true}],
+ founded:2019,
+ tool:'Phished AI Platform — personalized phishing simulation + security awareness engine',
+ note:'AI personalizes phishing attack scenarios for each individual employee based on role, behavior, and risk profile; ongoing automated campaigns; adapts training content in real time based on who falls for what; covers email, SMS, QR code, voice phishing vectors; GDPR-compliant; founded by Arnout Van de Meulebroucke'},
+*/
+
+// ══════════ UNITED KINGDOM (additional) ══════════
+
+{n:'Tracebit',lat:51.500,lon:-0.125,t:5,
+ cat:'PenTest/AppSec',country:'UK',city:'London',
+ focus:'Enterprise',
+ rev:'Not disclosed (early revenue stage)',ebitda:'Pre-profit',
+ fund:'$25 M total — $5 M Seed (Accel, 2024) + $20 M Series A (FirstMark, 2025); also MMC Ventures, Tapestry VC, CCL',gov:'',
+ founded:2023,
+ tool:'Tracebit — cloud-native deception / canary platform for attacker detection',
+ note:'Automatically deploys high-fidelity canaries (fake AWS tokens, SSH keys, browser cookies, LLM canaries, password manager credentials) across cloud environments; when attackers interact, real-time alerts fire; detects third-party red team exercises against production; founded by ex-Tessian engineers Andy Smith and Sam Cox'},
+
+/* EXCLUDED — Cytix: CI/CD-native security testing orchestration platform.
+{n:'Cytix',lat:53.483,lon:-2.244,t:5,
+ cat:'PenTest/AppSec',country:'UK',city:'Manchester',
+ focus:'Enterprise, SMB, Developers',
+ rev:'Not disclosed (early revenue stage)',ebitda:'Pre-profit',
+ fund:'£2.42 M total — £230K pre-seed (SFC Capital) + £1.6 M Seed (Sep 2024, Northern Powerhouse Investment Fund II / Praetura Ventures)',gov:'',
+ founded:2022,
+ tool:'Cytix — CI/CD-native continuous security testing orchestration platform',
+ note:'Analyses every development change in real time, predicts potential security flaws, and automatically triggers relevant security tests based on what code changed; integrates into CI/CD workflows; addresses the gap between ad-hoc and scheduled pentests; shift-left approach — no manual pentest scheduling required'},
+*/
+
+// ══════════ FRANCE (additional) ══════════
+
+/* EXCLUDED — MokN: excluded from map per user request.
+{n:'MokN',lat:48.870,lon:2.348,t:5,
+ cat:'PenTest/AppSec',country:'France',city:'Paris',
+ focus:'Enterprise, SMB',
+ rev:'>€1 M ARR (500K+ users protected before raising)',ebitda:'Pre-profit',
+ fund:'€2.6 M Seed (Oct 2025, Moonfire, OVNI Capital, Kima Ventures)',gov:'',
+ revData:[{y:'FY25',v:1}],
+ founded:2023,
+ tool:'MokN — deception-based credential protection with "phish-back" technology',
+ note:'Deploys hyper-realistic decoy portals (fake VPN logins, email portals, internal tools) inside corporate networks; when an attacker uses stolen credentials on a decoy, security team gets an alert before credentials are sold or reused; flips phishing defense — traps attackers AFTER credential theft; OSINT-personalized decoys; >€1M ARR reached bootstrapped'},
+*/
+
+/* EXCLUDED — Yogosha: excluded from map per user request.
+{n:'Yogosha',lat:48.873,lon:2.352,t:4,
+ cat:'PenTest/PTaaS',country:'France',city:'Paris',
+ focus:'Enterprise, Government, MSSP',
+ rev:'$27 M revenue (2024)',ebitda:'Not disclosed',
+ fund:'~$15 M total (Tikehau Capital, Zenium Technology Partners, BNP Paribas Développement, OneRagtime, Axeleo Capital)',gov:'',
+ revData:[{y:'FY21',v:5.1,e:true},{y:'FY22',v:7.5,e:true},{y:'FY23',v:12.5,e:true},{y:'FY24',v:27}],
+ founded:2015,
+ tool:'Yogosha Offensive Security Platform — PTaaS + bug bounty + VDP + live hacking events',
+ note:'French-first offensive security platform combining structured pentests, open bug bounty, and VDP with own platform for managing pentest workflows, researcher community, and vulnerability triage; strong public-sector adoption; French data sovereignty; $27M revenue in 2024; founded by Yassir Kazar and Fabrice Epelboin'},
+*/
+
+// ══════════ SPAIN (additional) ══════════
+
+/* EXCLUDED — CounterCraft: excluded from map per user request.
+{n:'CounterCraft',lat:43.319,lon:-1.982,t:5,
+ cat:'PenTest/AppSec',country:'Spain',city:'Donostia-San Sebastián',
+ focus:'Enterprise, Government',
+ rev:'Not disclosed (profitable; $26 M US government contract)',ebitda:'Not disclosed',
+ fund:'~$10 M total (Adara Ventures, eCapital, Red Eléctrica, Evolution Equity, In-Q-Tel); $26 M US GSA sole-source contract (2022)',gov:'contractor',
+ founded:2015,
+ tool:'CounterCraft Cyber Deception Platform — controlled decoy environments + counterintelligence',
+ note:'Creates controlled environments mimicking an organization\'s operational landscape to attract and study attackers; deploys decoy systems, false data, and fake identities that record attacker TTPs with zero false positives; provides attribution-grade threat intelligence from inside active attacks; approved by In-Q-Tel and US GSA; TIBER-EU compliant'},
+*/
+
+// ══════════ SWEDEN (additional) ══════════
+
+{n:'Nordic Defender',lat:57.707,lon:11.967,t:5,
+ cat:'PenTest/PTaaS',country:'Sweden',city:'Gothenburg',
+ focus:'Enterprise, SMB',
+ rev:'Not disclosed (bootstrapped)',ebitda:'Not disclosed',
+ fund:'Self-funded / bootstrapped',gov:'',
+ founded:2019,
+ tool:'SecureBug PTaaS + managed bug bounty platform',
+ note:'First crowdsourced offensive cybersecurity platform in Scandinavia; operates SecureBug PTaaS and managed bug bounty connecting Nordic companies with vetted ethical hackers for continuous security testing; specializes in Nordic language/regulation context; pivoted to full MSSP model combining offense and defense'},
+
+// ══════════ HUNGARY ══════════
+
+/* EXCLUDED (SERVICE COMPANY) — Hackrate: classified as a service/managed security company rather than a product vendor; kept in MD list but excluded from product map.
+{n:'Hackrate',lat:47.498,lon:19.040,t:5,
+ cat:'PenTest/PTaaS',country:'Hungary',city:'Budapest',
+ focus:'Enterprise, Government',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'Pre-seed from OXO Labs and Hiventures; majority-acquired by White Hat IT Security (Sándor Fehér)',gov:'',
+ founded:2019,
+ tool:'Hackrate Platform — crowdsourced ethical hacking + bug bounty + VDP',
+ note:'Hungary\'s first and only bug bounty platform; provides continuous security testing via own platform managing ethical hacker programs, bug bounty, and VDP; Hungary\'s first CVE Numbering Authority (CNA); Czech Ministry of Regional Development is a client; majority-acquired by White Hat IT Security'},
+*/
+
+// ══════════ ROMANIA (additional) ══════════
+
+/* EXCLUDED — Pentra: AI-powered pentest report automation tool; excluded as it is a reporting/documentation aid, not an active penetration testing or scanning platform.
+{n:'Pentra',lat:44.436,lon:26.101,t:5,
+ cat:'PenTest/AppSec',country:'Romania',city:'Bucharest',
+ focus:'Enterprise, SMB, Security professionals',
+ rev:'Not disclosed (beta stage)',ebitda:'Pre-profit',
+ fund:'€150K from Early Game Ventures (2024, Innovation Labs accelerator)',gov:'',
+ founded:2024,
+ tool:'Pentra — AI-powered penetration testing report automation and quality evaluation',
+ note:'Automates generation of pentest reports and evaluates the quality of penetration tests conducted by security engineers; reduces cost and time of pentest reporting; remarkable story: founded by two teenagers (under 18 at founding) including Bogdan Munteanu and Alexandru Antal; product launched October 2024; finalist Innovation Labs Romania 2024'},
+*/
+
+// ══════════ GERMANY (security awareness / firmware security) ══════════
+
+/* EXCLUDED — SoSafe: security awareness training and human risk management platform; prepares employees to recognise phishing and social engineering through simulations and e-learning — not an offensive/scanning pentest tool.
+{n:'SoSafe',lat:50.938,lon:6.960,t:4,
+ cat:'PenTest/AppSec',country:'Germany',city:'Cologne',
+ focus:'Enterprise',
+ rev:'~$54 M (FY2024, +52% YoY)',ebitda:'Pre-profit (growth stage)',
+ fund:'$73 M total; Series B: $73 M (Jan 2022, Highland Europe lead); co-investors: Acton Capital, Global Founders Capital, La Famiglia',gov:'',
+ revData:[{y:'FY23',v:35,e:true},{y:'FY24',v:54}],
+ founded:2018,
+ tool:'SoSafe Human Risk Management — AI-personalized phishing simulation + behavioral security awareness platform',
+ note:"Largest European security awareness training platform; 546 employees; 250+ enterprise customers across Europe; AI personalizes phishing scenarios per employee across email, SMS, QR code, and voice vectors; GDPR-compliant; integrates with Microsoft 365 and Google Workspace; Deloitte Fast 50 Germany; direct competitor to KnowBe4 (US) in the EU market"},
+*/
+
+{n:'Enginsight',lat:50.928,lon:11.589,t:5,
+ cat:'PenTest/AppSec',country:'Germany',city:'Jena',
+ focus:'SMB, Mid-market',
+ rev:'Not disclosed',ebitda:'Pre-profit',
+ fund:'€6 M total; Series A: €6 M (Sep 2024, UVC Partners lead); co-investors: Talanx AG, seed+speed, bm-t beteiligungsmanagement thüringen, Smart Infrastructure Ventures',gov:'',
+ founded:2017,
+ tool:'Enginsight Unified Platform — proprietary vulnerability scanner + IDS + asset discovery + patch management + SIEM',
+ note:'All-in-one cybersecurity platform purpose-built for European SMEs; own proprietary vulnerability scanner (no third-party engine); NIS2 and BSI IT-Grundschutz alignment; covers network scanning, web app testing, IDS alerting, asset inventory — all under one SaaS platform; strong DACH market focus; plans EU expansion with Series A proceeds'},
+
+{n:'ONEKEY',lat:51.227,lon:6.773,t:5,
+ cat:'PenTest/AppSec',country:'Germany',city:'Düsseldorf',
+ focus:'Enterprise (IoT/OT manufacturers)',
+ rev:'Not disclosed',ebitda:'Pre-profit',
+ fund:'~$1.4 M seed + PwC Germany Holdings strategic stake + eCAPITAL (Dec 2023); ECSO Startup Award — Europe\'s most promising cybersecurity startup',gov:'',
+ founded:2020,
+ tool:'ONEKEY Product Cybersecurity Platform — automated firmware binary analysis + SBOM generation + EU Cyber Resilience Act (CRA) compliance checks',
+ note:"Automated firmware security analysis without source code or hardware access; detects CVEs, hardcoded credentials, outdated components, and known malware in embedded software; generates SBOM for compliance; first European platform fully aligned with EU Cyber Resilience Act (CRA); clients: IoT/IIoT manufacturers, medical device makers, industrial OT operators; ECSO Startup Award winner"},
+
+// ══════════ FINLAND (additional) ══════════
+
+/* EXCLUDED — Hoxhunt: learning & training platform that prepares employees to recognise and resist phishing attacks;
+   not a penetration testing tool — no offensive/scanning capability, purely defensive awareness & behaviour training.
+{n:'Hoxhunt',lat:60.169,lon:24.935,t:5,
+ cat:'PenTest/AppSec',country:'Finland',city:'Helsinki',
+ focus:'Enterprise',
+ rev:'$5.3 M (FY2024)',ebitda:'Pre-profit',
+ fund:'~$53 M total; Series B: $40 M (May 2022, Level Equity lead); co-investors: Icebreaker.vc',gov:'',
+ revData:[{y:'FY23',v:4.2,e:true},{y:'FY24',v:5.3}],
+ founded:2016,
+ tool:'Hoxhunt Human Risk Platform — adaptive AI-driven phishing simulation + personalized micro-training engine',
+ note:'AI adapts attack difficulty per employee based on behavior and past responses; 1M+ end users on platform; enterprise clients: Airbus, Nokia, DocuSign, IGT, Kärcher; Deloitte Technology Fast 50 Finland 2023 (469% growth 2019–2022); 179 employees; 30-language support; integrates with Microsoft 365, Slack, Google Workspace'},
+*/
+
+// ══════════ UNITED KINGDOM (additional) ══════════
+
+{n:'CybSafe',lat:51.514,lon:-0.100,t:5,
+ cat:'PenTest/AppSec',country:'UK',city:'London',
+ focus:'Enterprise, Financial Services',
+ rev:'$11.5 M (FY2024, +50% YoY)',ebitda:'Pre-profit',
+ fund:'~$40 M total; Series B: $28 M (Jun 2022, Evolution Equity Partners lead); co-investors: IQ Capital, Hannover Digital Investments (HDI)',gov:'',
+ revData:[{y:'FY23',v:7.7,e:true},{y:'FY24',v:11.5}],
+ founded:2017,
+ tool:'CybSafe Behavioral Security Platform — AI-driven phishing simulation + behavioral risk scoring + adaptive security training',
+ note:"Behavioral science + AI platform measuring and reducing human cyber risk; 350+ customers; clients: Credit Suisse, Barclays, HSBC, FNZ Group, Moody's; unique behavioral risk scoring via SebDB (Security Behavior Database) — correlates training outcomes with actual security incident reduction; strong financial services penetration; 50% revenue growth FY2024"},
+
+// ══════════ GLOBAL COMPANIES ══════════
+// ── USA — Large / Public PenTest & VM ────────────────────────────────────────
+
+{n:'Rapid7',lat:42.360,lon:-71.057,t:3,
+ cat:'PenTest/AppSec',country:'USA',city:'Boston, MA',
+ focus:'Enterprise, Mid-market',
+ rev:'$844M (FY2024, +9% YoY)',ebitda:'$150M+ free cash flow',
+ fund:'Public (NASDAQ: RPD); acquired Kenzo Security (agentic AI SIEM, Mar 2026)',gov:'',
+ founded:2000,
+ tool:'InsightVM (VM) + InsightAppSec (DAST) + Metasploit Framework',
+ note:'Rapid7 owns Metasploit, the world\'s most widely used open-source penetration testing framework; InsightVM for vulnerability management; InsightAppSec for DAST; ~10,000 customers; acquired Kenzo Security for AI SIEM (Mar 2026)'},
+
+{n:'Tenable',lat:39.194,lon:-76.854,t:3,
+ cat:'PenTest/AppSec',country:'USA',city:'Columbia, MD',
+ focus:'Enterprise, Government',
+ rev:'$900M (FY2024, +13% YoY); ~$999M TTM 2025',ebitda:'Not disclosed',
+ fund:'Public (NASDAQ: TENB); acquired Vulcan Cyber (~$150M, Q1 2025) + Apex AI risk mgmt ($105M, May 2025)',gov:'',
+ founded:2002,
+ tool:'Tenable.io + Nessus — vulnerability management + exposure management platform',
+ note:'World\'s leading vulnerability management platform; owns Nessus scanner; 44,000+ customers including 65% of Fortune 500; expanded into exposure management with Vulcan Cyber + Apex AI acquisitions; major US government presence'},
+
+{n:'Qualys',lat:37.557,lon:-122.051,t:3,
+ cat:'PenTest/AppSec',country:'USA',city:'Foster City, CA',
+ focus:'Enterprise, SMB',
+ rev:'$607.6M (FY2024, +10% YoY)',ebitda:'Adj. EBITDA ~47%',
+ fund:'Public (NASDAQ: QLYS)',gov:'',
+ founded:1999,
+ tool:'Qualys VMDR + Web Application Scanning + Cybersecurity Asset Management',
+ note:'Cloud-native vulnerability management; one of the first SaaS security companies; 10,000+ customers; very high profitability (~47% EBITDA); VMDR integrates VM + detection + response; government and enterprise focus'},
+
+// ── USA — Specialist PenTest ────────────────────────────────────────────────
+
+{n:'NetSPI',lat:44.977,lon:-93.265,t:4,
+ cat:'PenTest/PTaaS',country:'USA',city:'Minneapolis, MN',
+ focus:'Enterprise, Financial',
+ rev:'~$75M ARR (est.)',ebitda:'Not disclosed',
+ fund:'PE: KKR investment (2022)',gov:'',
+ founded:2001,
+ tool:'NetSPI Resolve — PTaaS + automated continuous pentesting + Attack Surface Management',
+ note:'Managed pentest as a service; own Resolve platform for continuous testing and remediation tracking; specializes in financial services, healthcare, and retail; KKR-backed; strong manual + automated hybrid approach'},
+
+{n:'HackerOne',lat:37.773,lon:-122.422,t:4,
+ cat:'PenTest/PTaaS',country:'USA',city:'San Francisco, CA',
+ focus:'Enterprise, Government',
+ rev:'Not public',ebitda:'Not disclosed',
+ fund:'VC; raised $159.7M total (Series E $49M, Jan 2022); Benchmark, NEA, Dragoneer',gov:'partial',
+ founded:2012,
+ tool:'HackerOne Platform — bug bounty + VDP + PTaaS + Attack Resistance Management',
+ note:'World\'s largest bug bounty and vulnerability coordination platform; 3,000+ customers; $300M+ in bounties paid; runs US government bug bounties (Hack the Pentagon, Hack the Air Force); 1M+ registered security researchers worldwide'},
+
+{n:'Bugcrowd',lat:37.771,lon:-122.418,t:4,
+ cat:'PenTest/PTaaS',country:'USA',city:'San Francisco, CA',
+ focus:'Enterprise, Mid-market',
+ rev:'~$50–80M ARR (est.)',ebitda:'Not disclosed',
+ fund:'VC; raised $80M+ (Series D 2023); Rally Ventures, Blackbird Ventures',gov:'',
+ founded:2012,
+ tool:'Bugcrowd Platform — bug bounty + VDP + PTaaS + Attack Surface Management',
+ note:'Crowdsourced security testing; 250,000+ registered security researchers; 500+ customers; strong in mid-market and technology companies; competes directly with HackerOne; Series D 2023'},
+
+{n:'Synack',lat:37.475,lon:-122.197,t:4,
+ cat:'PenTest/PTaaS',country:'USA',city:'Redwood City, CA',
+ focus:'Enterprise, Government',
+ rev:'~$100M+ ARR (est.)',ebitda:'Not disclosed',
+ fund:'VC; Series D ($52M, 2021); Microsoft Ventures, GV (Google), DCVC',gov:'partial',
+ founded:2013,
+ tool:'Synack Red Team Platform — elite vetted crowdsourced pentest + AI-powered coordination',
+ note:'Elite crowdsourced pentesting; security researchers vetted to <1% acceptance rate; AI Augmented Continuous Red Teaming; major US DoD contracts; human + AI hybrid approach; customers include US Air Force, DHS, major banks'},
+
+{n:'Cobalt.io',lat:37.772,lon:-122.420,t:4,
+ cat:'PenTest/PTaaS',country:'USA',city:'San Francisco, CA',
+ focus:'Enterprise, SMB',
+ rev:'~$30–50M ARR (est.)',ebitda:'Not disclosed',
+ fund:'VC; $29M Series B (2021); Accel, BoldStart; Danish co-founders',gov:'',
+ founded:2013,
+ tool:'Cobalt Platform — PTaaS + agile pentest management + integrations',
+ note:'Pentest as a Service platform; integrates with Jira, GitHub, Azure DevOps; 1,000+ security researchers (Cobalt Core); per-pentest pricing model; strong developer-focused approach; Danish-founded, US-headquartered'},
+
+// ── Israel / USA — PenTest ─────────────────────────────────────────────────
+
+{n:'Pentera',lat:32.087,lon:34.799,t:3,
+ cat:'PenTest/AppSec',country:'Israel/USA',city:'Petah Tikva, Israel',
+ focus:'Enterprise',
+ rev:'$100M+ ARR (Jan 2026)',ebitda:'Not disclosed',
+ fund:'VC; $60M Series D (Mar 2025, $1B+ valuation); acquired EVA Information Security (AI red teaming, Nov 2025); K1 Investment Management',gov:'',
+ founded:2015,
+ tool:'Pentera Automated Security Validation — continuous automated pentesting of network infrastructure',
+ note:'Automated security validation; continuously runs real-world attack scenarios against live environments without agents; $100M+ ARR milestone (Jan 2026); 1,000+ customers including PwC, KPMG; $1B+ valuation; acquired EVA Information Security for AI red teaming (Nov 2025)'},
+
+{n:'Checkmarx',lat:32.090,lon:34.780,t:3,
+ cat:'PenTest/AppSec',country:'Israel/USA',city:'Ramat Gan, Israel',
+ focus:'Enterprise, DevSecOps',
+ rev:'~$200M+ ARR (est.)',ebitda:'Not disclosed',
+ fund:'PE: Hellman & Friedman (~$1.15B deal 2020)',gov:'',
+ founded:2006,
+ tool:'Checkmarx One — SAST + SCA + DAST + API security + Container + IaC scanning',
+ note:'Enterprise AppSec testing; SAST, SCA, DAST, and API security in one platform; major DevSecOps vendor; 1,800+ customers globally including US government agencies; acquired by PE firm Hellman & Friedman'},
+
+{n:'Cymulate',lat:32.063,lon:34.774,t:4,
+ cat:'PenTest/AppSec',country:'Israel/USA',city:'Tel Aviv',
+ focus:'Enterprise, Mid-market',
+ rev:'~$50M ARR (est.)',ebitda:'Not disclosed',
+ fund:'VC; Series C $70M (2022)',gov:'',
+ founded:2016,
+ tool:'Cymulate Continuous Security Validation — BAS + CTEM + Automated Red Teaming',
+ note:'Breach and attack simulation (BAS) + continuous threat exposure management (CTEM); automated adversarial testing including phishing, endpoint, email gateway, WAF, data exfiltration simulations; MITRE ATT&CK aligned; used for TIBER-EU and DORA testing'},
+
+{n:'Novee',lat:32.060,lon:34.773,t:4,
+ cat:'PenTest/AppSec',country:'Israel',city:'Tel Aviv',
+ focus:'Enterprise',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'VC; $51.5M seed (Jan 2026, YL Ventures, Canaan, Zeev); raised within 4 months of founding',gov:'',
+ founded:2025,
+ tool:'Novee AI Red Team Platform — automated red teaming for LLM applications',
+ note:'AI Red Teaming for LLM applications: automated testing for prompt injection, jailbreaks, data exfiltration, adversarial attacks on AI systems; $51.5M seed raised just 4 months after founding (Jan 2026); YL Ventures, Canaan, Zeev; one of the best-funded AI security startups at seed stage'},
+
+// ── India ──────────────────────────────────────────────────────────────────
+
+{n:'Astra Security',lat:28.635,lon:77.225,t:5,
+ cat:'PenTest/PTaaS',country:'India/USA',city:'Delhi, India',
+ focus:'SMB, Enterprise',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'Seed/Series A stage; investors: IAN Fund',gov:'',
+ founded:2018,
+ tool:'Astra Pentest — PTaaS platform + vulnerability scanner + expert-led pentesting',
+ note:'Indian-origin PTaaS platform targeting SMBs and mid-market in US and India; automated vulnerability scanning + manual pentest by certified security experts; Pentest Suite covers web apps, APIs, mobile, networks; ISO 27001/SOC 2/GDPR compliance-ready reports; growing US market presence'},
+
+// ── USA — AI Native Pentest ────────────────────────────────────────────────
+
+{n:'XBOW',lat:47.608,lon:-122.335,t:2,
+ cat:'PenTest/AppSec',country:'USA',city:'Seattle, WA',
+ focus:'Enterprise, Mid-market',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'VC; $237M total ($75M Series B Jun 2025 + $120M Series C Mar 2026, $1B+ unicorn); founded by Oege de Moor (GitHub Copilot creator)',gov:'',
+ founded:2022,
+ tool:'XBOW AI Pentesting Agent — autonomous vulnerability discovery and exploitation (web applications)',
+ note:'AI pentesting agent that autonomously discovers and exploits vulnerabilities; ⚠️ SCOPE: web applications only (HTTP/HTTPS) — does not cover network infra, internal environments, or non-web APIs; founded by Oege de Moor (creator of GitHub Copilot, CodeQL); ranked top on HackerOne leaderboard; customers: Moderna, Samsung; $237M raised B+C; unicorn 2025–2026; leading AI-native autonomous pentest category for web'},
+
+{n:'Horizon3.ai',lat:37.774,lon:-122.432,t:4,
+ cat:'PenTest/AppSec',country:'USA',city:'San Francisco, CA',
+ focus:'Enterprise, Federal',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'VC; $100M Series D (Jun 2025, NEA); 5,200+ customers (Q1 2026); 102% YoY ARR growth; 2,900% revenue growth since 2021',gov:'',
+ founded:2019,
+ tool:'NodeZero — autonomous pentesting platform for continuous network security validation',
+ note:'NodeZero autonomously discovers and chains exploitable vulnerabilities to prove real attack paths; no agents required; 5,200+ customers (Q1 2026; up from 3,000 at Series C); 102% YoY ARR growth; 150,000+ autonomous pentests conducted; 2,900% revenue growth since 2021; $100M Series D (Jun 2025); strong US federal and enterprise market'},
+
+{n:'RunSybil',lat:37.773,lon:-122.430,t:4,
+ cat:'PenTest/AppSec',country:'USA',city:'San Francisco, CA',
+ focus:'Enterprise',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'VC; $40M Series A (Mar 2026, Khosla Ventures + Anthropic Anthology Fund); founded by OpenAI\'s first security hire + ex-Meta red team',gov:'',
+ founded:2023,
+ tool:'Sybil — autonomous AI continuous penetration testing against live applications',
+ note:'Continuous autonomous pentesting against live apps; founded by Ari Herbert-Voss (OpenAI\'s first security hire) and Vlad Ionescu (ex-Meta red team); $40M Series A (Khosla Ventures + Anthropic Anthology Fund, Mar 2026) — Anthropic\'s backing signals AI-native moat; customers: Cursor, Notion; competitor to XBOW and Horizon3.ai'},
+
+{n:'Hacktron AI',lat:37.779,lon:-122.412,t:5,
+ cat:'PenTest/AppSec',country:'USA',city:'San Francisco, CA',
+ focus:'SMB, Engineering teams',
+ rev:'Not disclosed (private beta)',ebitda:'Not disclosed',
+ fund:'Early-stage / seed (not disclosed)',gov:'',
+ founded:2023,
+ tool:'Hacktron AI — AI-powered automated application security testing',
+ note:'Early-stage AI pentest platform in private beta; clients include Perplexity, Supabase, Lovable, Windsurf, Gumroad; targets engineering teams wanting continuous automated application security testing without dedicated security staff'},
+
+// ── USA — Large Defense / Endpoint ────────────────────────────────────────
+
+{n:'CrowdStrike',lat:30.268,lon:-97.740,t:1,
+ cat:'Defense/Endpoint',country:'USA',city:'Austin, TX',
+ focus:'Enterprise, Government',
+ rev:'$3.954B (FY2025, +29% YoY); $4.24B ARR',ebitda:'Adj. EBITDA expanding; 27% CAGR projected',
+ fund:'Public (NASDAQ: CRWD); acquired SGNL ($740M, Jan 2026)',gov:'',
+ founded:2011,
+ tool:'Falcon Platform — cloud-native XDR + EDR + Threat Intel + Identity Protection',
+ note:'World\'s leading cloud-native cybersecurity platform; 24,000+ customers; Falcon platform unifies EDR, XDR, SIEM, identity protection, threat intelligence; caused global IT outage Jul 2024 (Falcon sensor bug) but recovered strongly; acquired SGNL ($740M) Jan 2026; $4.24B ARR'},
+
+{n:'Palo Alto Networks',lat:37.411,lon:-122.023,t:1,
+ cat:'Defense/Endpoint',country:'USA',city:'Santa Clara, CA',
+ focus:'Enterprise, Government',
+ rev:'$5.6B NGS ARR (+32% YoY); $15.8B RPO',ebitda:'Adj. EBITDA CAGR ~17%',
+ fund:'Public (NASDAQ: PANW); acquired CyberArk $25B (closed Feb 11, 2026)',gov:'',
+ founded:2005,
+ tool:'Cortex XDR/XSIAM + Prisma Cloud + Strata Network Security',
+ note:'World\'s second largest pure-play cybersecurity company; platformization strategy bundles SASE, cloud security, SOC automation; acquired CyberArk for $25B (Feb 2026) adding identity/PAM leadership; $5.6B NGS ARR'},
+
+{n:'Fortinet',lat:37.385,lon:-122.017,t:1,
+ cat:'Defense/Endpoint',country:'USA',city:'Sunnyvale, CA',
+ focus:'Enterprise, SMB',
+ rev:'$6.68–6.83B revenue guidance FY2025',ebitda:'High margins',
+ fund:'Public (NASDAQ: FTNT); acquired Lacework (Aug 2024)',gov:'',
+ founded:2000,
+ tool:'FortiGate (NGFW) + FortiSOC + FortiXDR + FortiSASE + Security Fabric',
+ note:'World\'s largest firewall vendor; Security Fabric integrates NGFW, SASE, SD-WAN, endpoint, cloud security; acquired Lacework cloud security startup (Aug 2024) at significant discount from $8.3B peak valuation; strong SMB and MSSP market via channel'},
+
+{n:'SentinelOne',lat:37.378,lon:-122.046,t:3,
+ cat:'Defense/Endpoint',country:'USA',city:'Mountain View, CA',
+ focus:'Enterprise, Mid-market',
+ rev:'~$900M ARR (FY2025 est.)',ebitda:'EBITDA turning positive 2025',
+ fund:'Public (NYSE: S); partnership with Snyk on AI agent security (Mar 2026)',gov:'',
+ founded:2013,
+ tool:'Singularity Platform — AI-native XDR + EDR + SIEM + Identity + Cloud Security',
+ note:'AI-native cybersecurity; Purple AI for SOC automation; 11,000+ customers; significant market share gains post-CrowdStrike outage 2024; partnership with Snyk on AI agent security (Mar 2026); Vigilance MDR service'},
+
+{n:'Zscaler',lat:37.350,lon:-121.895,t:2,
+ cat:'Defense/Endpoint',country:'USA',city:'San Jose, CA',
+ focus:'Enterprise',
+ rev:'~$2.6B ARR (FY2025 est.)',ebitda:'Improving',
+ fund:'Public (NASDAQ: ZS)',gov:'',
+ founded:2007,
+ tool:'Zscaler Zero Trust Exchange — SASE + SSE + ZIA + ZPA + ZTNA',
+ note:'Pioneer and leader in cloud-native Zero Trust and SASE; Zero Trust Exchange processes 400B+ daily transactions; 7,700+ customers; Gartner MQ Leader SSE; replacing traditional VPNs and firewalls with cloud-delivered ZTNA'},
+
+{n:'Wiz',lat:40.712,lon:-74.006,t:2,
+ cat:'Defense/Endpoint',country:'USA',city:'New York, NY',
+ focus:'Enterprise, Cloud',
+ rev:'~$500M ARR (pre-acquisition)',ebitda:'Pre-profit',
+ fund:'Acquired by Google for $32B (closed Mar 11, 2026 — Google\'s largest-ever acquisition)',gov:'',
+ founded:2020,
+ tool:'Wiz Cloud Security Platform — CSPM + CWPP + CIEM + CDR + AI security',
+ note:'Cloud security unicorn acquired by Google for $32B (Mar 2026); agentless cloud security covering CSPM, CWPP, CIEM, CDR across AWS, Azure, GCP; $500M ARR; 40% of Fortune 100 customers; fastest SaaS company to $100M ARR; now part of Google Cloud; directly competed with Orca Security'},
+
+{n:'Secureworks',lat:33.749,lon:-84.388,t:3,
+ cat:'Defense/Endpoint',country:'USA',city:'Atlanta, GA',
+ focus:'Enterprise, Mid-market',
+ rev:'~$480M (FY2024)',ebitda:'Low-Moderate',
+ fund:'Public (NASDAQ: SCWX); majority Dell',gov:'',
+ founded:1999,
+ tool:'Taegis XDR + MDR — open XDR platform + managed detection and response',
+ note:'One of the original MSSP/MDR providers; Taegis XDR platform; 4,000+ customers; majority owned by Dell Technologies; pivoting to pure SaaS XDR model; strong government and financial services presence; over 20 years of threat intelligence'},
+
+{n:'Huntress',lat:39.204,lon:-76.852,t:4,
+ cat:'Defense/Endpoint',country:'USA',city:'Columbia, MD',
+ focus:'SMB, MSP Channel',
+ rev:'~$100M ARR (est.)',ebitda:'Not disclosed',
+ fund:'VC; $100M+ Series C (2023)',gov:'',
+ founded:2015,
+ tool:'Huntress Security Platform — managed EDR + MDR + ITDR for SMBs via MSP channel',
+ note:'MDR and managed EDR specifically designed for SMBs via the MSP channel; SOC team of 100+ analysts provides 24/7 human-backed monitoring; acquired Curricula (security awareness) 2022; strong focus on the underserved SMB market; ~120,000 SMBs protected'},
+
+{n:'Arctic Wolf',lat:44.854,lon:-93.470,t:3,
+ cat:'Defense/MDR',country:'USA',city:'Eden Prairie, MN',
+ focus:'SMB, Mid-market',
+ rev:'~$400M ARR (est.)',ebitda:'Not disclosed',
+ fund:'VC; raised $401M (Series F 2021, $4.3B valuation); Viking, Owl Rock',gov:'',
+ founded:2012,
+ tool:'Arctic Wolf Security Operations Cloud — 24/7 MDR + Managed Risk + Managed Security Awareness',
+ note:'Leading MDR for SMB and mid-market; concierge security operations model with dedicated "Security Operations Advisors" per customer; Managed Risk for vulnerability management; 5,000+ customers; strongest MDR growth in North America'},
+
+{n:'Abnormal AI',lat:37.777,lon:-122.416,t:2,
+ cat:'Defense/Endpoint',country:'USA',city:'San Francisco, CA',
+ focus:'Enterprise',
+ rev:'$200M+ ARR; 1,000+ employees',ebitda:'Not disclosed',
+ fund:'VC; $250M Series D (Aug 2024, $5.1B valuation); Greylock, Insight Partners',gov:'',
+ founded:2018,
+ tool:'Abnormal AI Security Platform — AI-native email security + behavioral AI + account takeover prevention',
+ note:'Leading AI-native email security; behavioral AI detects BEC, phishing, account takeover attacks that bypass traditional filters; Gartner MQ Leader Email Security 2025; 17% of Fortune 500 customers; rebranded from Abnormal Security to Abnormal AI; $200M+ ARR; $5.1B valuation'},
+
+// ── Israel — Defense / Endpoint ───────────────────────────────────────────
+
+{n:'Check Point',lat:32.066,lon:34.791,t:2,
+ cat:'Defense/Endpoint',country:'Israel',city:'Tel Aviv',
+ focus:'Enterprise, Government',
+ rev:'$2.565B (FY2024, +6%)',ebitda:'~40% operating margin',
+ fund:'Public (NASDAQ: CHKP)',gov:'',
+ founded:1993,
+ tool:'Check Point Infinity Platform — NGFWs + Quantum + Harmony endpoint + CloudGuard + Threat Intel',
+ note:'One of the founding companies of the firewall era; invented the stateful firewall; Infinity platform covers network, cloud, endpoint, IoT, mobile; 100,000+ customers; ~40% operating margin (among highest in cybersecurity); strong government and critical infrastructure presence globally'},
+
+{n:'CyberArk',lat:32.087,lon:34.800,t:2,
+ cat:'Defense/Endpoint',country:'Israel/USA',city:'Petah Tikva, Israel',
+ focus:'Enterprise',
+ rev:'$921M (FY2024, +31%)',ebitda:'Improving',
+ fund:'Acquired by Palo Alto Networks for $25B (closed Feb 11, 2026)',gov:'',
+ founded:1999,
+ tool:'CyberArk Identity Security Platform — PAM + CIEM + Secrets Management + EPM',
+ note:'Global leader in Privileged Access Management (PAM) and identity security; $921M revenue (FY2024 +31%); acquired by Palo Alto Networks for $25B (Feb 2026) — largest PANW acquisition; combined entity creates world\'s most comprehensive network + endpoint + cloud + identity platform'},
+
+{n:'Armis',lat:37.789,lon:-122.400,t:2,
+ cat:'Defense/Endpoint',country:'Israel/USA',city:'San Francisco, CA',
+ focus:'Enterprise, Critical Infrastructure',
+ rev:'$300M+ ARR; $6.1B valuation',ebitda:'Pre-profit',
+ fund:'Acquired by ServiceNow for $7.75B (announced Dec 23, 2025; closing expected H2 2026)',gov:'',
+ founded:2015,
+ tool:'Armis Centrix — AI-powered asset intelligence + OT/IoT security + exposure management',
+ note:'Leader in cyber exposure management; covers IT, OT, IoT, medical devices without agents; acquired by ServiceNow for $7.75B (Dec 2025, closing H2 2026); 600+ enterprise customers; agentless asset visibility across entire attack surface'},
+
+{n:'Cato Networks',lat:32.066,lon:34.785,t:3,
+ cat:'Defense/Endpoint',country:'Israel',city:'Tel Aviv',
+ focus:'Enterprise, Mid-market',
+ rev:'~$200M+ ARR; $4.8B valuation',ebitda:'Pre-profit',
+ fund:'VC; Series G $359M (2025)',gov:'',
+ founded:2015,
+ tool:'Cato SASE Cloud — cloud-native SASE + SD-WAN + SSE + Zero Trust',
+ note:'Pioneer of cloud-native SASE; single global cloud platform converging SD-WAN, FWaaS, SWG, CASB, ZTNA into one; 3,000+ global customers; $4.8B valuation; fastest path to secure remote work for distributed enterprises'},
+
+{n:'Axonius',lat:32.081,lon:34.781,t:3,
+ cat:'Defense/Endpoint',country:'Israel/USA',city:'Tel Aviv / New York',
+ focus:'Enterprise',
+ rev:'~$100M ARR (est.)',ebitda:'Not disclosed',
+ fund:'VC; Series E $200M ($2.6B valuation)',gov:'',
+ founded:2017,
+ tool:'Axonius Cybersecurity Asset Management — comprehensive IT asset inventory and exposure management',
+ note:'Cybersecurity asset management connecting to 900+ security and management tools to create complete asset inventory; eliminates unknown assets and coverage gaps; 500+ enterprise customers; $2.6B valuation; Gartner Magic Quadrant recognition'},
+
+{n:'Orca Security',lat:40.714,lon:-74.005,t:2,
+ cat:'Defense/Endpoint',country:'Israel/USA',city:'New York, NY',
+ focus:'Enterprise, Cloud',
+ rev:'Not public',ebitda:'Not disclosed',
+ fund:'VC; raised $550M+ ($1.8B valuation); Stripes, GGV Capital',gov:'',
+ founded:2019,
+ tool:'Orca Cloud Security Platform — agentless CSPM + CDR + DSPM + vulnerability management',
+ note:'Agentless cloud security pioneer; SideScanning technology captures full cloud estate snapshot without agents; covers CSPM, CWPP, CIEM, CDR, DSPM across AWS, Azure, GCP; 800+ enterprise customers; pioneered "agentless cloud security" concept; strong competition with Wiz'},
+
+{n:'Claroty',lat:40.710,lon:-74.001,t:2,
+ cat:'Defense/Endpoint',country:'USA',city:'New York, NY',
+ focus:'Enterprise, OT/ICS/Healthcare',
+ rev:'Not public',ebitda:'Not disclosed',
+ fund:'VC; $150M Series F (Jan 2026, $3B valuation); $890M total raised; Bessemer, Rockwell Automation',gov:'',
+ founded:2015,
+ tool:'Claroty xDome — OT/IoT/IoMT cybersecurity visibility + risk management + threat detection',
+ note:'Leader in cyber-physical systems (CPS) security covering OT, IoT, and medical devices; $3B valuation (Jan 2026); $890M total raised; Rockwell Automation partnership (750+ manufacturing plants); expanding into US Intelligence Community; 125 countries'},
+
+{n:'Deep Instinct',lat:32.062,lon:34.776,t:4,
+ cat:'Defense/Endpoint',country:'Israel/USA',city:'Tel Aviv',
+ focus:'Enterprise',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'VC; raised $200M+; LGT Capital, Millennium New Horizons',gov:'',
+ founded:2015,
+ tool:'Deep Instinct Prevention Platform — deep learning-based malware prevention + EDR',
+ note:'World\'s first cybersecurity company to apply deep learning end-to-end for malware prevention; <20ms prediction time; >99% detection rate with <0.1% false positives; prevents unknown malware and zero-days before execution; customers in financial services, healthcare, government'},
+
+// ── Japan ──────────────────────────────────────────────────────────────────
+
+{n:'Trend Micro',lat:35.689,lon:139.692,t:2,
+ cat:'Defense/Endpoint',country:'Japan',city:'Tokyo',
+ focus:'Enterprise, SMB',
+ rev:'$1.799B (FY2024, +2%)',ebitda:'Moderate-High',
+ fund:'Public (TSE:4704 / OTC:TMICY)',gov:'',
+ founded:1988,
+ tool:'Trend Micro Vision One — XDR + EDR + Cloud Security + Network Defense + Risk Management',
+ note:'One of the world\'s largest dedicated cybersecurity companies; Vision One platform for XDR across endpoint, network, cloud; 500,000+ business customers; 250M+ consumer devices protected; strong APAC presence; cybersecurity research unit tracking emerging threats'},
+
+// ── UK — Large Defense ─────────────────────────────────────────────────────
+
+{n:'Sophos',lat:51.664,lon:-1.295,t:3,
+ cat:'Defense/Endpoint',country:'UK',city:'Abingdon, Oxfordshire',
+ focus:'Enterprise, SMB',
+ rev:'~$800M (FY2024)',ebitda:'Not disclosed',
+ fund:'PE: Thoma Bravo (2019)',gov:'',
+ founded:1985,
+ tool:'Sophos Central — XDR + MDR + Endpoint + Firewall + Email + Cloud Security',
+ note:'UK cybersecurity vendor focused on SMB and mid-market via MSP channel; Sophos MDR is world\'s largest MDR service by customer count; acquired by Thoma Bravo 2019; 600,000+ organizations protected across 150+ countries; strong partner ecosystem'},
+
+{n:'Darktrace',lat:52.206,lon:0.120,t:2,
+ cat:'Defense/Endpoint',country:'UK',city:'Cambridge',
+ focus:'Enterprise, Mid-market',
+ rev:'~$782M (FY Jun 2024, +51%)',ebitda:'Improving',
+ fund:'Acquired by Thoma Bravo for $5.3B (closed Oct 1, 2024); now private; delisted from LSE',gov:'',
+ founded:2013,
+ tool:'Darktrace ActiveAI Security Platform — self-learning AI threat detection + autonomous response',
+ note:'Pioneer of AI-driven cybersecurity using self-learning AI (inspired by human immune system); PREVENT + DETECT + RESPOND modules; acquired by Thoma Bravo $5.3B (Oct 1, 2024); 9,000+ customers across 110 countries; Cambridge University spinout; CEO Jill Popelka succeeded Poppy Gustafsson'},
+
+{n:'NCC Group',lat:53.480,lon:-2.236,t:2,
+ cat:'PenTest/AppSec',country:'UK',city:'Manchester',
+ focus:'Enterprise, Government, Financial',
+ rev:'£293.9M (~$312M, FY Sep 2025; -2.6% YoY)',ebitda:'Listed on LSE',
+ fund:'Public (LSE: NCC)',gov:'',
+ founded:1999,
+ tool:'NCC Group — specialist security research + pentest + consulting + managed services',
+ note:'UK\'s largest specialist cybersecurity consultancy; deep security research capabilities; Fox-IT subsidiary (advanced threat intelligence, Dutch government work); pentest services for FTSE 100, financial institutions, government; LSE-listed; offices globally'},
+
+// ── EU — Defense / Endpoint (not yet on map) ──────────────────────────────
+
+{n:'ESET',lat:48.149,lon:17.108,t:3,
+ cat:'Defense/Endpoint',country:'Slovakia',city:'Bratislava',
+ focus:'Enterprise, SMB, Consumer',
+ rev:'~$600M (est. FY2024)',ebitda:'Profitable',
+ fund:'Private / founder-owned',gov:'',
+ founded:1992,
+ tool:'ESET PROTECT Platform — EDR + XDR + Threat Intelligence + Email Security + Encryption',
+ note:'Central European cybersecurity powerhouse; one of the longest-established AV/endpoint security vendors; 400M+ users protected; 110M business endpoints; ESET Threat Intelligence widely used; strong Central and Eastern European leadership; independently owned — rare in a market dominated by US/PE acquirers'},
+
+{n:'Bitdefender',lat:44.441,lon:26.102,t:4,
+ cat:'Defense/Endpoint',country:'Romania',city:'Bucharest',
+ focus:'Enterprise, SMB, Consumer',
+ rev:'~$200M (est. FY2024)',ebitda:'Profitable',
+ fund:'Private; Vitruvian Partners 2017',gov:'',
+ founded:2001,
+ tool:'Bitdefender GravityZone — EDR + XDR + MDR + Network + Risk Analytics',
+ note:'Romania\'s most successful tech company; GravityZone covers endpoint, network, email, and cloud security; consistently top-rated in independent tests (AV-TEST, SE Labs); acquired Horangi Cyber Security (Feb 2024); 500M+ users; MDR service growing rapidly; 2,000+ employees'},
+
+{n:'WithSecure',lat:60.169,lon:24.942,t:3,
+ cat:'Defense/Endpoint',country:'Finland',city:'Helsinki',
+ focus:'Enterprise, SMB',
+ rev:'EUR ~147–150M (FY2024)',ebitda:'Not disclosed',
+ fund:'Public (Nasdaq Helsinki: WITH)',gov:'',
+ founded:1988,
+ tool:'WithSecure Elements — EDR + MDR + Cloud Protection + Vulnerability Management + Exposure Management',
+ note:'Finnish cybersecurity company (formerly F-Secure Business Security); demerged from F-Secure in 2022; co-security methodology — co-develops products with customers; Elements platform covers endpoint, cloud, vulnerability management; 3,000+ partner organizations; Helsinki-listed'},
+
+{n:'Eye Security',lat:52.093,lon:5.117,t:4,
+ cat:'Defense/MDR',country:'Netherlands',city:'The Hague',
+ focus:'SMB, Enterprise',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'VC; €57.5M total raised; MDR + integrated cyber insurance for SMEs',gov:'',
+ founded:2020,
+ tool:'Eye Security — MDR + integrated cyber insurance for European SMEs',
+ note:'European MDR provider combining 24/7 security monitoring with integrated cyber insurance — unique model reducing cost and complexity for SMEs; founded by former intelligence agency professionals; rapidly expanding across Netherlands, Belgium, Germany, UK; NIS2 compliance focus'},
+
+{n:'Tines',lat:53.333,lon:-6.255,t:2,
+ cat:'Defense/SOAR',country:'Ireland',city:'Dublin',
+ focus:'Enterprise',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'VC; $125M Series C (Feb 2025, $1.125B valuation — Irish unicorn); $272M total raised; Accel, a16z',gov:'',
+ founded:2018,
+ tool:'Tines Security Automation Platform — no-code/low-code security orchestration and automation (SOAR 2.0)',
+ note:'No-code security automation platform; automates >1 billion tasks per week; customers: Intercom, Palo Alto Networks, Elastic, Canva, Databricks; Irish unicorn ($1.125B valuation, Feb 2025); competes with Splunk SOAR, ServiceNow; strong SOC automation adoption'},
+
+{n:'Sekoia.io',lat:48.863,lon:2.360,t:4,
+ cat:'Defense/SOAR',country:'France',city:'Paris',
+ focus:'Enterprise, MSSP',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'VC; raised €35M Series A (2022); BPI France (French state co-investor)',gov:'partial',
+ founded:2018,
+ tool:'Sekoia SOC Platform — cloud-native SIEM + XDR + CTI + SOAR',
+ note:'French cloud-native SOC platform combining SIEM, XDR, threat intelligence, and SOAR; built for MSSPs and enterprise SOC teams; strong CTI feed covering ransomware groups, APTs; BPI France backed; EU data sovereignty; growing in France, DACH, Southern Europe; NIS2 compliance'},
+
+{n:'Stormshield',lat:48.868,lon:2.372,t:3,
+ cat:'Defense/Endpoint',country:'France',city:'Paris',
+ focus:'Enterprise, Government, Critical Infra',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'Subsidiary of Airbus CyberSecurity (Airbus Group ~26% owned by French/German/Spanish states)',gov:'partial',
+ founded:2000,
+ tool:'Stormshield Network Security + Endpoint Security + Data Security — EU-certified cybersecurity',
+ note:'EU-certified security solutions for critical infrastructure, defense, and government; part of Airbus CyberSecurity; French ANSSI and EU qualified products; specializes in OT/ICS security; government-grade encryption and firewalls; France\'s premier security vendor for sensitive sectors'},
+
+// ══════════ USA ══════════
+
+{n:'AISLE',lat:37.774,lon:-122.419,t:5,
+ cat:'PenTest/AppSec',country:'USA',city:'San Francisco',
+ focus:'Enterprise, Developer teams',
+ rev:'Not disclosed (early stage)',ebitda:'Pre-profit',
+ fund:'Angel round (Oct 2025, undisclosed); investors: Jeff Dean (Google DeepMind), Thomas Wolf (Hugging Face), Olivier Pomel (Datadog co-founder), Aparna Chennapragada (Microsoft CPO AI)',gov:'',
+ founded:2024,
+ tool:'AISLE Cyber Reasoning System (CRS) — AI-native application vulnerability discovery, triage, and autonomous patch generation',
+ note:'Founded by Ondrej Vlcek (fmr CEO of Avast), Jaya Baloo (fmr CSO at Rapid7), and Stanislav Fort (fmr DeepMind/Anthropic); emerged from stealth Oct 2025; AI reasoning system autonomously identifies known and zero-day application vulnerabilities then generates ready-to-merge patches; in first weeks found 100+ new vulnerabilities across Linux kernel, OpenSSL, cURL, Apache stack; Jan 2026: discovered 12 previously unknown OpenSSL vulnerabilities incl. high-severity RCE flaw; strong Czech founding DNA (Vlcek)'},
+
+// ══════════ USA — BAS / CTEM / Continuous Validation ══════════
+
+{n:'SafeBreach',lat:37.387,lon:-122.060,t:3,
+ cat:'BAS/CTEM',country:'USA',city:'Sunnyvale, CA',
+ focus:'Enterprise',
+ rev:'~$50–70M ARR (est.)',ebitda:'Not disclosed',
+ fund:'VC; $70M total raised (Series D $19M, 2022); investors: Sequoia, Deutsche Telekom Capital Partners, PayPal Ventures',gov:'',
+ founded:2014,
+ tool:'SafeBreach BAS Platform — continuous breach & attack simulation across kill chain',
+ note:'Pioneer of the Breach & Attack Simulation (BAS) category (founded 2014); simulates full attack kill chain continuously to validate security controls; MITRE ATT&CK aligned; integrates with CrowdStrike, Microsoft, Splunk; enterprise-only; $70M raised; strong US federal and enterprise footprint; no SMB tier'},
+
+{n:'AttackIQ',lat:32.769,lon:-117.173,t:3,
+ cat:'BAS/CTEM',country:'USA',city:'San Diego, CA',
+ focus:'Enterprise, Government',
+ rev:'~$50M ARR (est.)',ebitda:'Not disclosed',
+ fund:'VC; $44M raised; investors: Atlantic Bridge, Index Ventures, Salesforce Ventures',gov:'',
+ founded:2013,
+ tool:'AttackIQ Security Optimization Platform — automated BAS + MITRE ATT&CK validation',
+ note:'Market leader in BAS aligned to MITRE ATT&CK framework; AttackIQ Academy is free training platform with 400K+ users; deep partner ecosystem with CrowdStrike (Breach Response partner), Microsoft (MISA member), Palo Alto; continuous automated adversary emulation; enterprise and US federal government focus; no SMB pricing'},
+
+{n:'Picus Security',lat:39.927,lon:32.847,t:4,
+ cat:'BAS/CTEM',country:'USA/Turkey',city:'Ankara (R&D) / San Jose (HQ)',
+ focus:'Enterprise, Mid-market',
+ rev:'~$20–30M ARR (est.)',ebitda:'Not disclosed',
+ fund:'VC; $45M Series B (2022); investors: Earlybird Digital East, Mithril Capital',gov:'',
+ founded:2013,
+ tool:'Picus Security Control Validation Platform — BAS + threat-centric exposure validation',
+ note:'European and US BAS vendor with strong MITRE ATT&CK alignment; Picus Complete Security Control Validation: simulates real threats across endpoint, network, email, cloud; threat library of 10,000+ attack actions; strong EU enterprise presence; Gartner Peer Insights 4.7/5 (BAS); $45M Series B; mid-market accessible vs. SafeBreach/AttackIQ'},
+
+{n:'CyCognito',lat:37.453,lon:-122.179,t:3,
+ cat:'BAS/CTEM',country:'USA',city:'Palo Alto, CA',
+ focus:'Enterprise, Mid-market',
+ rev:'~$30–50M ARR (est.)',ebitda:'Not disclosed',
+ fund:'VC; $100M+ raised (Series C $52M, 2021); investors: Lightspeed Venture Partners, Citi Ventures, Georgian, Coatue',gov:'',
+ founded:2017,
+ tool:'CyCognito Platform — External Attack Surface Management (EASM) + automated security testing',
+ note:'External attack surface discovery + automated security testing in one platform; discovers unknown assets across cloud, on-prem, subsidiary networks then continuously tests them; strong SMB-to-enterprise range; closest US analogue to Velgard\'s perimeter agent concept; $100M+ raised; customers: Colgate-Palmolive, ABN AMRO, Priceline'},
+
+{n:'FireCompass',lat:37.774,lon:-122.421,t:4,
+ cat:'BAS/CTEM',country:'USA/India',city:'San Francisco, CA',
+ focus:'Enterprise, Government',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'VC Series A raised; India-origin; global CART play; backed by SeedFund, Emergent Ventures',gov:'',
+ founded:2018,
+ tool:'FireCompass CART Platform — Continuous Automated Red Teaming + EASM + attack surface validation',
+ note:'Continuous Automated Red Teaming (CART) + EASM platform; autonomously discovers attack surface and conducts multi-vector, multi-stage attack simulations; covers external + internal + application layers; strong US federal and enterprise presence; India R&D center; differentiated by multi-step attack path chaining vs. point BAS tools'},
+
+// ══════════ EU — DORA/NIS2 Continuous Security Validation ══════════
+
+{n:'Validato',lat:52.370,lon:4.895,t:5,
+ cat:'BAS/CTEM',country:'EU',city:'Netherlands (est.)',
+ focus:'SMB, Enterprise, Financial sector',
+ rev:'Not disclosed (early stage)',ebitda:'Pre-profit',
+ fund:'Early-stage; EU-native continuous security validation startup',gov:'',
+ founded:2023,
+ tool:'Validato — Continuous security validation platform for DORA/NIS2 compliance',
+ note:'EU-native continuous security validation startup positioning automated continuous testing as a DORA and NIS2 compliance tool; targets EU financial sector and regulated SMBs; direct competitor to Velgard in the EU regulated SMB market; early stage; product details limited at time of writing (Jun 2026)'},
+
+// ══════════ UNITED KINGDOM (Strike) ══════════
+
+{n:'Strike',lat:51.505,lon:-0.080,t:5,
+ cat:'PenTest/PTaaS',country:'UK',city:'London',
+ focus:'Enterprise, Mid-market',
+ rev:'Not disclosed',ebitda:'Not disclosed',
+ fund:'€16.5M total raised (Greyhound Capital, VentureFriends); MIT collaboration',gov:'',
+ founded:2021,
+ tool:'Strike Platform — AI-powered crowdsourced pentesting + PTaaS',
+ note:'AI-powered crowdsourced penetration testing platform combining automated scanning with a vetted global community of security researchers; customers include Delivery Hero and OLX; MIT collaboration on offensive security research; one of the fastest-growing UK PTaaS platforms; London-based; founded 2021'},
+
+];
+
+// ── EU MEMBERSHIP (computed filter, no need to tag every company) ─────────────
+const EU_MEMBERS = new Set([
+  'France','Belgium','Netherlands','Austria','Bulgaria','Romania','Germany',
+  'Ireland','Italy','Spain','Portugal','Sweden','Finland','Czech Republic',
+  'Slovakia','Hungary','Poland','Denmark','Greece','Croatia','Cyprus',
+  'Estonia','Latvia','Lithuania','Luxembourg','Malta','Slovenia'
+]);
+
+function getPrimaryCountry(c){
+  // Take first country from slash-separated list e.g. "Israel/USA" → "Israel"
+  return (c.country||'').split('/')[0].trim();
+}
+
+function isEU(c){
+  return EU_MEMBERS.has(getPrimaryCountry(c));
+}
+
+function getAllCountries(){
+  const countries=new Set();
+  C.forEach(c=>countries.add(getPrimaryCountry(c)));
+  return [...countries].sort();
+}
+
+function populateCountrySelect(){
+  const sel=document.getElementById('country-select');
+  if(!sel) return;
+  // Clear existing options except first
+  while(sel.options.length>1) sel.remove(1);
+  getAllCountries().forEach(cty=>{
+    const o=document.createElement('option');
+    o.value=cty; o.textContent=cty;
+    sel.appendChild(o);
+  });
+}
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let searchQuery='';
+let showStartupsOnly=false;
+let euOnly=false;
+let countryFilter='';
+
+// ── LEGEND FILTER STATE ───────────────────────────────────────────────────────
+const legendFilters={focus:new Set(),style:new Set(),tier:new Set()};
+
+function hasLegendFilter(){
+  return legendFilters.focus.size>0||legendFilters.style.size>0||legendFilters.tier.size>0;
+}
+function applyLegendFilter(c){
+  if(!hasLegendFilter()) return true;
+  const ck=getCustKey(c.focus);
+  const isSt=c.founded>=STARTUP_FROM;
+  const passF=legendFilters.focus.size===0||legendFilters.focus.has(ck);
+  const passS=legendFilters.style.size===0||
+              (legendFilters.style.has('startup')&&isSt)||
+              (legendFilters.style.has('estab')&&!isSt);
+  const passT=legendFilters.tier.size===0||legendFilters.tier.has(String(c.t));
+  return passF&&passS&&passT;
+}
+function updateLegendUI(){
+  const hasAny=hasLegendFilter();
+  document.getElementById('leg-clear-btn').classList.toggle('visible',hasAny);
+  document.querySelectorAll('.leg-row.filterable').forEach(row=>{
+    const group=row.dataset.filterGroup;
+    const key=row.dataset.filterKey;
+    const s=legendFilters[group];
+    if(s.size===0){row.classList.remove('active','dimmed');}
+    else{row.classList.toggle('active',s.has(key));row.classList.toggle('dimmed',!s.has(key));}
+  });
+}
+
+// ── REVENUE TREND CHART ──────────────────────────────────────────────────────
+function buildTrendChart(revData){
+  if(!revData||revData.length<2) return `<div class="p-trend"><div class="p-trend-label">Revenue Trend</div><div style="font-size:10px;color:#555;padding:5px 0;font-style:italic">No public revenue data available</div></div>`;
+  const hasEst=revData.some(d=>d.e);
+  const W=250,H=80,BBY=62,maxH=42;
+  const n=revData.length;
+  const bW=n===2?64:n===3?54:44, gap=n===2?24:n===3?16:12;
+  const ox=Math.round((W-(n*bW+(n-1)*gap))/2);
+  const maxV=Math.max(...revData.map(d=>d.v));
+  let svg='';
+  revData.forEach((d,i)=>{
+    const bh=Math.max(4,Math.round((d.v/maxV)*maxH));
+    const x=ox+i*(bW+gap), by=BBY-bh, est=!!d.e;
+    let fill=i===n-1?(d.v>=(revData[n-2]?.v||d.v)?'#4CAF50':'#f44336'):'#2a4a8a';
+    const vLabel=(est?'~':'')+(d.v>=1000?'$'+(d.v/1000).toFixed(1)+'B':'$'+d.v+'M');
+    svg+=`<rect x="${x}" y="${by}" width="${bW}" height="${bh}" fill="${fill}" rx="3" opacity="${est?0.5:0.9}"${est?' stroke="#7eb6ff" stroke-width="0.8" stroke-dasharray="3,2"':''}/>`;
+    svg+=`<text x="${x+bW/2}" y="${by-3}" fill="${est?'#888':'#ccc'}" font-size="9" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif">${vLabel}</text>`;
+    svg+=`<text x="${x+bW/2}" y="${BBY+10}" fill="#777" font-size="9" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif">${d.y}</text>`;
+    if(i>0){const p=revData[i-1].v,pct=((d.v-p)/p*100).toFixed(0),up=pct>=0;
+      svg+=`<text x="${x+bW/2}" y="${by-14}" fill="${up?'#4CAF50':'#f44336'}" font-size="8.5" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif">${up?'▲':'▼'}${Math.abs(pct)}%</text>`;}
+  });
+  const note=hasEst?`<div style="font-size:9px;color:#555;margin-top:2px">~ back-calculated from disclosed ARR / growth rate</div>`:'';
+  return `<div class="p-trend"><div class="p-trend-label">Revenue Trend (USD)</div><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="margin-top:2px">${svg}</svg>${note}</div>`;
+}
+
+// ── LAYER ────────────────────────────────────────────────────────────────────
+const newsRingLayer = L.layerGroup().addTo(map);
+const favRingLayer  = L.layerGroup().addTo(map);
+const layer = L.layerGroup().addTo(map);
+
+// ── COMMENTS ─────────────────────────────────────────────────────────────────
+function saveComment(name,val){
+  if(val.trim()==='') localStorage.removeItem('cmt_'+name);
+  else localStorage.setItem('cmt_'+name,val);
+}
+function loadComment(name){ return localStorage.getItem('cmt_'+name)||''; }
+
+// ── FAVOURITES ───────────────────────────────────────────────────────────────
+const favourites = new Set(JSON.parse(localStorage.getItem('map_favs')||'[]'));
+let showFavsOnly = false;
+
+function saveFavs(){ localStorage.setItem('map_favs',JSON.stringify([...favourites])); }
+
+function rebuildFavRings(){
+  favRingLayer.clearLayers();
+  C.forEach(c=>{
+    if(!favourites.has(c.n)) return;
+    L.circleMarker([c.lat,c.lon],{
+      radius:TRADIUS[c.t]+7, color:'#FFD700', weight:2,
+      fill:false, interactive:false, className:'fav-ring-pulse'
+    }).addTo(favRingLayer);
+  });
+}
+
+function updateFavCounter(){
+  const el=document.getElementById('fav-counter');
+  if(!el) return;
+  if(favourites.size>0){el.textContent='★ '+favourites.size;el.style.display='inline-block';}
+  else el.style.display='none';
+}
+
+function toggleFav(name){
+  if(favourites.has(name)) favourites.delete(name); else favourites.add(name);
+  saveFavs();
+  rebuildFavRings();
+  updateFavCounter();
+  const btn=document.getElementById('fav-btn');
+  if(btn && btn.dataset.company===name){
+    const on=favourites.has(name);
+    btn.textContent=on?'★ In Watchlist':'☆ Add to Watchlist';
+    btn.classList.toggle('is-fav',on);
+  }
+  if(showFavsOnly) buildMarkers();
+}
+
+// ── BUILD MARKERS ────────────────────────────────────────────────────────────
+function buildMarkers(){
+  newsRingLayer.clearLayers();
+  layer.clearLayers();
+  const q=searchQuery.trim().toLowerCase();
+  let vis=0;
+  C.forEach(c=>{
+    if(showStartupsOnly && !(c.founded>=STARTUP_FROM)) return;
+    if(showFavsOnly && !favourites.has(c.n)) return;
+    if(euOnly && !isEU(c)) return;
+    if(countryFilter && getPrimaryCountry(c)!==countryFilter) return;
+    if(!applyLegendFilter(c)) return;
+    if(q){
+      const hay=(c.n+' '+c.country+' '+c.city+' '+c.cat+' '+c.focus+' '+(c.tool||'')+' '+(c.note||'')+' '+c.founded).toLowerCase();
+      if(!hay.includes(q)) return;
+    }
+    vis++;
+    const ck=getCustKey(c.focus);
+    const col=CCOLOR[ck], r=TRADIUS[c.t];
+    const catCol=CATCOLOR[c.cat]||'#90A4AE';
+
+    // Startup banner HTML
+    const startupBanner=(c.founded>=STARTUP_FROM)?`
+      <div class="p-startup-banner">
+        <span class="sb-label">★ NEW STARTUP</span>
+        <span class="sb-meta">Founded ${c.founded} · ${c.fund.split(';')[0]}</span>
+      </div>`:'';
+
+    const govBadge=c.gov==='partial'
+      ?`<div class="p-gov">🏛️ Partially State-Owned</div>`
+      :c.gov==='contractor'?`<div class="p-gov p-gov-con">🤝 Government Contractor</div>`:'';
+
+    const toolRow=c.tool
+      ?`<span class="p-key">Product / Tool</span><span class="p-val" style="color:#66BB6A;font-size:11px">${c.tool}</span>`:'';
+
+    const foundedRow=`<span class="p-key">Founded</span><span class="p-val" style="color:${(c.founded>=STARTUP_FROM)?'#FF8F00':'#ddd'}">${c.founded}${(c.founded>=STARTUP_FROM)?' ★':''}</span>`;
+
+    const isMatch=q&&(c.n+' '+c.country+' '+c.city).toLowerCase().includes(q);
+    const mCol=isMatch?'#FFD700':col;
+    const mOp=q&&!isMatch?0.3:0.88;
+    const strokeCol=(c.founded>=STARTUP_FROM)?'#FF8F00':'rgba(255,255,255,0.25)';
+    const strokeW=(c.founded>=STARTUP_FROM)?2.5:1.5;
+
+    const _url=COMPANY_URLS[c.n];
+    const _nameLink=_url
+      ?`<a href="${_url}" target="_blank" rel="noopener" style="color:#7eb6ff;text-decoration:none;border-bottom:1px dotted rgba(126,182,255,0.4)">${c.n}<span style="font-size:9px;margin-left:4px;opacity:0.55">↗</span></a>`
+      :c.n;
+    const _newsUrl=COMPANY_NEWS[c.n];
+    const _newsLink=_newsUrl?`<a href="${_newsUrl}" target="_blank" rel="noopener" style="color:#FF8F00;text-decoration:none;font-size:10px;border-bottom:1px dotted rgba(255,143,0,0.4)">📰 News / Blog<span style="font-size:8px;margin-left:3px;opacity:0.6">↗</span></a>`:'';
+    const _price=COMPANY_PRICE[c.n];
+    const _priceRow=_price?`<span class="p-key">Pricing</span><span class="p-val" style="color:#90CAF9;font-size:11px">${_price}</span>`:'';
+    const _isFav=favourites.has(c.n);
+    const _favName=c.n.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const _badge = (window.NEWS_BADGES||{})[c.n];
+    const _newsAlertHtml = _badge ? `
+      <div class="p-news-alert">
+        <div class="p-news-alert-title">🔴 ${_badge.count} new article${_badge.count>1?'s':''}</div>
+        ${(_badge.items||[]).map(it=>`<a href="${it.url}" target="_blank" rel="noopener">${it.title}</a>`).join('')}
+      </div>` : '';
+
+    const popup=`
+      ${_newsAlertHtml}
+      <div class="p-name">${(c.founded>=STARTUP_FROM)?'★ ':''}${_nameLink}</div>
+      <div class="p-tags">
+        <span class="p-tag" style="background:${catCol}22;color:${catCol};border:1px solid ${catCol}44">${c.cat}</span>
+        <span class="p-tag" style="background:${col}22;color:${col};border:1px solid ${col}44">${CLABEL[ck]}</span>
+        <span class="p-tag" style="background:#ffffff14;color:#aaa;border:1px solid #333">${TLABEL[c.t]}</span>
+      </div>
+      ${startupBanner}${govBadge}
+      <div class="p-grid" style="margin-top:${((c.founded>=STARTUP_FROM)||c.gov)?'9px':'2px'}">
+        <span class="p-key">Country</span><span class="p-val">${c.country}</span>
+        <span class="p-key">City / HQ</span><span class="p-val">${c.city}</span>
+        ${foundedRow}
+        <span class="p-key">Customers</span><span class="p-val">${c.focus}</span>
+        <span class="p-key">Revenue</span><span class="p-val">${c.rev}</span>
+        <span class="p-key">EBITDA</span><span class="p-val">${c.ebitda}</span>
+        <span class="p-key">Investment</span><span class="p-val">${c.fund}</span>
+        ${_priceRow}
+        ${toolRow}
+        ${_newsLink?`<span class="p-key">News</span><span class="p-val">${_newsLink}</span>`:''}
+      </div>
+      ${buildTrendChart(c.revData)}
+      <div class="p-notes">${c.note}</div>
+      <button id="fav-btn" data-company="${c.n.replace(/"/g,'&quot;')}" class="${_isFav?'is-fav':''}" onclick="toggleFav('${_favName}')">${_isFav?'★ In Watchlist':'☆ Add to Watchlist'}</button>
+      <div class="p-comment-wrap">
+        <div class="p-comment-header">
+          <span class="p-comment-label">✏️ My Notes</span>
+          <span class="p-comment-hint">Private · this browser only</span>
+        </div>
+        <textarea class="p-comment-box" id="comment-box"
+          placeholder="Write your analysis, deal status, contact, or any notes about this company. Saved automatically."></textarea>
+        <div class="p-comment-footer">
+          <span class="p-comment-persist">💾 Notes are saved in your browser and persist between sessions</span>
+          <span class="p-comment-saved" id="comment-saved">Saved ✓</span>
+        </div>
+      </div>`;
+
+    const m=L.circleMarker([c.lat,c.lon],{
+      radius:r, color:strokeCol, weight:strokeW,
+      fillColor:mCol, fillOpacity:mOp
+    }).bindPopup(popup,{maxWidth:390});
+    m.on('popupopen',function(){
+      const ta=document.getElementById('comment-box');
+      if(!ta) return;
+      ta.value=loadComment(c.n);
+      let _t;
+      ta.oninput=function(){
+        clearTimeout(_t);
+        _t=setTimeout(function(){
+          saveComment(c.n,ta.value);
+          const s=document.getElementById('comment-saved');
+          if(s){s.style.opacity='1';setTimeout(function(){s.style.opacity='0'},1400);}
+        },500);
+      };
+    });
+    if(_badge){
+      L.circleMarker([c.lat,c.lon],{
+        radius:r+7, color:'#ff5252', weight:2.5,
+        fillOpacity:0, className:'news-ring-pulse', interactive:false
+      }).addTo(newsRingLayer);
+    }
+    const tip=(c.founded>=STARTUP_FROM)?'★ '+c.n:c.n;
+    m.bindTooltip(tip,{permanent:false,direction:'top',offset:[0,-(r+4)]});
+    layer.addLayer(m);
+  });
+  updateCounts(vis);
+}
+
+// ── COUNTS ───────────────────────────────────────────────────────────────────
+function updateCounts(vis){
+  const cust={'ent':0,'smb':0,'gov':0,'ent-smb':0,'ent-gov':0,'all':0};
+  let ns=0,ne=0;
+  C.forEach(c=>{
+    cust[getCustKey(c.focus)]++;
+    if((c.founded>=STARTUP_FROM)) ns++; else ne++;
+  });
+  Object.keys(cust).forEach(k=>{const el=document.getElementById('lc-'+k);if(el)el.textContent=cust[k];});
+  const sl=document.getElementById('lc-startup'), el2=document.getElementById('lc-estab');
+  if(sl) sl.textContent=ns; if(el2) el2.textContent=ne;
+  const total=C.length;
+  document.getElementById('counter').textContent=`${total} companies (${ns} startups)`;
+  const sc=document.getElementById('search-count');
+  const anyFilter=searchQuery.trim()||showStartupsOnly||showFavsOnly||euOnly||countryFilter;
+  if(anyFilter){
+    sc.textContent=`${vis} shown`;sc.style.display='inline';
+  } else {sc.textContent='';sc.style.display='none';}
+  // EU filter tag in titlebar
+  const euTag=document.getElementById('eu-filter-tag');
+  if(euTag) euTag.style.display=euOnly?'inline-block':'none';
+}
+
+// ── HANDLERS ─────────────────────────────────────────────────────────────────
+const searchBox=document.getElementById('search-box');
+const searchClear=document.getElementById('search-clear');
+
+searchBox.addEventListener('input',function(){
+  searchQuery=this.value;
+  searchClear.style.display=searchQuery?'inline':'none';
+  buildMarkers();
+});
+searchClear.addEventListener('click',function(){
+  searchBox.value=''; searchQuery='';
+  this.style.display='none'; buildMarkers(); searchBox.focus();
+});
+document.getElementById('f-startup-only').addEventListener('change',function(){
+  showStartupsOnly=this.checked; buildMarkers();
+});
+document.getElementById('f-fav-only').addEventListener('change',function(){
+  showFavsOnly=this.checked; buildMarkers();
+});
+document.getElementById('f-eu-only').addEventListener('change',function(){
+  euOnly=this.checked;
+  buildMarkers();
+});
+document.getElementById('country-select').addEventListener('change',function(){
+  countryFilter=this.value;
+  buildMarkers();
+});
+// Clicking the EU tag in titlebar removes the EU filter
+const _euTag=document.getElementById('eu-filter-tag');
+if(_euTag) _euTag.addEventListener('click',function(){
+  euOnly=false;
+  document.getElementById('f-eu-only').checked=false;
+  buildMarkers();
+  this.style.display='none';
+});
+// ── LEGEND CLICK HANDLERS ─────────────────────────────────────────────────────
+document.querySelectorAll('.leg-row.filterable').forEach(row=>{
+  row.addEventListener('click',()=>{
+    const group=row.dataset.filterGroup;
+    const key=row.dataset.filterKey;
+    const s=legendFilters[group];
+    if(s.has(key)) s.delete(key); else s.add(key);
+    updateLegendUI();
+    buildMarkers();
+  });
+});
+document.getElementById('leg-clear-btn').addEventListener('click',()=>{
+  legendFilters.focus.clear();legendFilters.style.clear();legendFilters.tier.clear();
+  updateLegendUI();buildMarkers();
+});
+
+// Show news counter in titlebar
+(function(){
+  const badges = window.NEWS_BADGES || {};
+  const count = Object.keys(badges).length;
+  const el = document.getElementById('news-counter');
+  if(el && count > 0){
+    el.textContent = '● ' + count + ' new';
+    el.style.display = 'inline-block';
+  }
+})();
+
+rebuildFavRings();
+updateFavCounter();
+populateCountrySelect();
+buildMarkers();
+</script>
+</body>
+</html>
