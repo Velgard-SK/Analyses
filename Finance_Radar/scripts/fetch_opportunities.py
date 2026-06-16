@@ -26,8 +26,8 @@ KEYWORDS       = ["AI", "artificial intelligence", "cybersecurity", "cyber secur
                   "deep tech", "deeptech", "digital security", "machine learning",
                   "data security", "privacy", "encryption", "autonomous systems"]
 
-DATA_FILE      = Path(__file__).parent.parent / "docs" / "data" / "opportunities.json"
-DATA_JS_FILE   = Path(__file__).parent.parent / "docs" / "data" / "data.js"
+DATA_FILE      = Path(__file__).parent.parent / "data" / "opportunities.json"
+DATA_JS_FILE   = Path(__file__).parent.parent / "data" / "data.js"
 CLOSING_DAYS   = 30   # flag as closing soon within N days
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
