@@ -310,8 +310,9 @@ window.NEWS_BADGES = window.NEWS_BADGES || {};
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const map = L.map('map',{center:[30,10],zoom:2,zoomControl:true});
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-  attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:19
+// Esri World Dark Gray Canvas — free, no API key (CARTO basemaps now require one)
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{
+  attribution:'&copy; Esri &copy; OpenStreetMap contributors',maxZoom:16
 }).addTo(map);
 
 const TRADIUS={1:17,2:13,3:10,4:8,5:6};
