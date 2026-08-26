@@ -3,7 +3,7 @@
 
 $ErrorActionPreference = "Stop"
 $LogFile = "$PSScriptRoot\update_log.txt"
-$Market  = "C:\Users\radva\OneDrive\Velgard\01_CyberHUB\Analysis\Market"
+$Market  = "C:\Users\radva\OneDrive\Velgard\01_CyberHUB\04_Analysis\Market"
 $Repo    = $PSScriptRoot
 
 function Log($msg) {
