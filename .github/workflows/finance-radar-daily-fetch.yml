@@ -23,6 +23,7 @@ jobs:
           python-version: '3.12'
 
       - name: Run fetch script
+        working-directory: Finance_Radar
         env:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
@@ -31,6 +32,7 @@ jobs:
         run: python scripts/fetch_opportunities.py
 
       - name: Commit updated data
+        working-directory: Finance_Radar
         run: |
           git config user.name  "Velgard Radar Bot"
           git config user.email "radar-bot@velgard.eu"
