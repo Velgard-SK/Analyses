@@ -11,23 +11,42 @@ function Log($msg) {
     "$ts  $msg" | Tee-Object -FilePath $LogFile -Append
 }
 
+# ── Log rotation: keep the file from growing forever ─────────────────────────
+if ((Test-Path $LogFile) -and (Get-Item $LogFile).Length -gt 200KB) {
+    $tail = Get-Content $LogFile -Tail 500
+    Set-Content $LogFile $tail
+}
+
 Log "=== Daily update started ==="
 
-# ── 1. Refresh news badges ────────────────────────────────────────────────────
-Log "Running news_digest.py..."
-try {
-    & python "$Market\tools\news_digest.py" 2>&1 | ForEach-Object { Log "  [news] $_" }
-} catch {
-    Log "  [news] WARNING: news_digest failed — $_"
+# Runs a python tool, logging all output. Returns $true on exit code 0.
+# ErrorActionPreference is dropped to Continue around the call: python logs to
+# stderr, and with "Stop" the first stderr line would become a terminating
+# error that aborts the pipeline mid-run.
+function Run-Tool($label, $script) {
+    Log "Running $(Split-Path $script -Leaf)..."
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & python $script 2>&1 | ForEach-Object { Log "  [$label] $_" }
+        if ($LASTEXITCODE -ne 0) {
+            Log "  [$label] WARNING: exited with code $LASTEXITCODE"
+            return $false
+        }
+        return $true
+    } catch {
+        Log "  [$label] WARNING: failed to start — $_"
+        return $false
+    } finally {
+        $ErrorActionPreference = $prevEAP
+    }
 }
 
+# ── 1. Refresh news badges ────────────────────────────────────────────────────
+$newsOk = Run-Tool "news" "$Market\tools\news_digest.py"
+
 # ── 2. Refresh CSV export ─────────────────────────────────────────────────────
-Log "Running export_companies.py..."
-try {
-    & python "$Market\tools\export_companies.py" 2>&1 | ForEach-Object { Log "  [csv]  $_" }
-} catch {
-    Log "  [csv]  WARNING: export failed — $_"
-}
+$csvOk = Run-Tool "csv" "$Market\tools\export_companies.py"
 
 # ── 3. Copy updated files into the repo ──────────────────────────────────────
 Log "Copying updated files..."
@@ -44,18 +63,34 @@ foreach ($c in $copies) {
     if (Test-Path $c.Src) { Copy-Item $c.Src $c.Dst -Force }
 }
 
-# ── 4. Git commit & push ──────────────────────────────────────────────────────
-Log "Committing changes..."
+# ── 4. Stamp the landing page with today's date ──────────────────────────────
 $date = Get-Date -Format "yyyy-MM-dd"
+$indexFile = "$Repo\index.html"
+if (Test-Path $indexFile) {
+    $html = Get-Content $indexFile -Raw
+    $stamped = $html -replace '(<span id="last-updated">)[^<]*(</span>)', "`${1}$date`${2}"
+    if ($stamped -ne $html) { Set-Content $indexFile $stamped -NoNewline -Encoding utf8 }
+}
+
+# ── 5. Git commit & push ──────────────────────────────────────────────────────
+Log "Committing changes..."
+$msg  = "Daily update: $date"
+$failed = @()
+if (-not $newsOk) { $failed += "news" }
+if (-not $csvOk)  { $failed += "csv" }
+if ($failed.Count -gt 0) { $msg += " (partial: $($failed -join ', ') failed)" }
+
 $changed = git -C $Repo status --porcelain
 if ($changed) {
     git -C $Repo add --all
-    git -C $Repo commit -m "Daily update: $date"
+    git -C $Repo commit -m $msg
     Log "Pushing to GitHub..."
     git -C $Repo push
-    Log "Push complete."
+    if ($LASTEXITCODE -ne 0) { Log "WARNING: git push failed (exit $LASTEXITCODE)." }
+    else { Log "Push complete." }
 } else {
     Log "No changes detected — nothing to commit."
 }
 
-Log "=== Done ==="
+if ($failed.Count -gt 0) { Log "=== Done (with failures: $($failed -join ', ')) ===" }
+else { Log "=== Done ===" }

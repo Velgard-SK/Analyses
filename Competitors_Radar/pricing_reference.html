@@ -86,7 +86,7 @@ tr.hidden-row{display:none}
 
 <div class="topbar">
   <h1>💰 Cybersecurity Pricing Reference 2026</h1>
-  <span class="meta">50+ vendors · June 2026</span>
+  <span class="meta">50+ vendors · 7 categories</span>
   <div class="search-wrap">
     <input type="text" id="global-search" placeholder="Search company, country, price…" oninput="applyFilters()"/>
   </div>
@@ -142,7 +142,7 @@ tr.hidden-row{display:none}
           <th onclick="sortTable('all-table',2)">Category<span class="sort-icon"></span></th>
           <th onclick="sortTable('all-table',3)">Target<span class="sort-icon"></span></th>
           <th onclick="sortTable('all-table',4)">Plan / Tier<span class="sort-icon"></span></th>
-          <th onclick="sortTable('all-table',5)">Price<span class="sort-icon"></span></th>
+          <th onclick="sortTable('all-table',5,true)">Price<span class="sort-icon"></span></th>
           <th onclick="sortTable('all-table',6)">Billing<span class="sort-icon"></span></th>
           <th>What's Included</th>
           <th>Notes</th>
@@ -161,7 +161,7 @@ tr.hidden-row{display:none}
     <th onclick="sortTable('ptaas-table',1)">Country<span class="sort-icon"></span></th>
     <th onclick="sortTable('ptaas-table',2)">Target<span class="sort-icon"></span></th>
     <th onclick="sortTable('ptaas-table',3)">Plan<span class="sort-icon"></span></th>
-    <th onclick="sortTable('ptaas-table',4)">Price<span class="sort-icon"></span></th>
+    <th onclick="sortTable('ptaas-table',4,true)">Price<span class="sort-icon"></span></th>
     <th onclick="sortTable('ptaas-table',5)">Billing<span class="sort-icon"></span></th>
     <th>What's Included</th>
     <th>Notes</th>
@@ -175,7 +175,7 @@ tr.hidden-row{display:none}
     <th onclick="sortTable('vm-table',1)">Country<span class="sort-icon"></span></th>
     <th onclick="sortTable('vm-table',2)">Target<span class="sort-icon"></span></th>
     <th onclick="sortTable('vm-table',3)">Plan<span class="sort-icon"></span></th>
-    <th onclick="sortTable('vm-table',4)">Price<span class="sort-icon"></span></th>
+    <th onclick="sortTable('vm-table',4,true)">Price<span class="sort-icon"></span></th>
     <th onclick="sortTable('vm-table',5)">Billing<span class="sort-icon"></span></th>
     <th>What's Included</th>
     <th>Notes</th>
@@ -189,7 +189,7 @@ tr.hidden-row{display:none}
     <th onclick="sortTable('bas-table',1)">Country<span class="sort-icon"></span></th>
     <th onclick="sortTable('bas-table',2)">Target<span class="sort-icon"></span></th>
     <th onclick="sortTable('bas-table',3)">Plan<span class="sort-icon"></span></th>
-    <th onclick="sortTable('bas-table',4)">Price<span class="sort-icon"></span></th>
+    <th onclick="sortTable('bas-table',4,true)">Price<span class="sort-icon"></span></th>
     <th onclick="sortTable('bas-table',5)">Billing<span class="sort-icon"></span></th>
     <th>What's Included</th>
     <th>Notes</th>
@@ -203,7 +203,7 @@ tr.hidden-row{display:none}
     <th onclick="sortTable('appsec-table',1)">Country<span class="sort-icon"></span></th>
     <th onclick="sortTable('appsec-table',2)">Target<span class="sort-icon"></span></th>
     <th onclick="sortTable('appsec-table',3)">Plan<span class="sort-icon"></span></th>
-    <th onclick="sortTable('appsec-table',4)">Price<span class="sort-icon"></span></th>
+    <th onclick="sortTable('appsec-table',4,true)">Price<span class="sort-icon"></span></th>
     <th onclick="sortTable('appsec-table',5)">Billing<span class="sort-icon"></span></th>
     <th>What's Included</th>
     <th>Notes</th>
@@ -217,7 +217,7 @@ tr.hidden-row{display:none}
     <th onclick="sortTable('awareness-table',1)">Country<span class="sort-icon"></span></th>
     <th onclick="sortTable('awareness-table',2)">Target<span class="sort-icon"></span></th>
     <th onclick="sortTable('awareness-table',3)">Plan<span class="sort-icon"></span></th>
-    <th onclick="sortTable('awareness-table',4)">Price<span class="sort-icon"></span></th>
+    <th onclick="sortTable('awareness-table',4,true)">Price<span class="sort-icon"></span></th>
     <th onclick="sortTable('awareness-table',5)">Billing<span class="sort-icon"></span></th>
     <th>What's Included</th>
     <th>Notes</th>
@@ -231,7 +231,7 @@ tr.hidden-row{display:none}
     <th onclick="sortTable('grc-table',1)">Country<span class="sort-icon"></span></th>
     <th onclick="sortTable('grc-table',2)">Target<span class="sort-icon"></span></th>
     <th onclick="sortTable('grc-table',3)">Plan<span class="sort-icon"></span></th>
-    <th onclick="sortTable('grc-table',4)">Price<span class="sort-icon"></span></th>
+    <th onclick="sortTable('grc-table',4,true)">Price<span class="sort-icon"></span></th>
     <th onclick="sortTable('grc-table',5)">Billing<span class="sort-icon"></span></th>
     <th>What's Included</th>
     <th>Notes</th>
@@ -245,7 +245,7 @@ tr.hidden-row{display:none}
     <th onclick="sortTable('xdr-table',1)">Country<span class="sort-icon"></span></th>
     <th onclick="sortTable('xdr-table',2)">Target<span class="sort-icon"></span></th>
     <th onclick="sortTable('xdr-table',3)">Plan<span class="sort-icon"></span></th>
-    <th onclick="sortTable('xdr-table',4)">Price<span class="sort-icon"></span></th>
+    <th onclick="sortTable('xdr-table',4,true)">Price<span class="sort-icon"></span></th>
     <th onclick="sortTable('xdr-table',5)">Billing<span class="sort-icon"></span></th>
     <th>What's Included</th>
     <th>Notes</th>
@@ -320,7 +320,7 @@ const DATA = {
     ['Intigriti','Belgium','Enterprise / government','VDP / Bug Bounty','Contact sales (~€499/mo VDP est.)','Pay per valid vuln + platform','Unlimited programs/assets, triage, researcher matching, Jira/Slack, SSO','100,000+ researchers','contact'],
     ['Zerocopter','Netherlands','Enterprise / regulated','Bug Bounty','Contact sales','Pay per valid vuln + platform','"No cure, no pay" bug bounty, managed, Hacksclusive platform','—','contact'],
     ['Zerocopter','Netherlands','Enterprise','Pentest','Contact sales','Per engagement','Hands-on pentest, real-time results, Hacksclusive platform','—','contact'],
-    ['Hacktron AI','UK','Developers / startup','AI Pentest','~$350/engagement','Per engagement','Autonomous AI-led pentest','Pre-seed; pricing may evolve','range'],
+    ['Hacktron AI','USA','Developers / startup','AI Pentest','~$350/engagement','Per engagement','Autonomous AI-led pentest','Pre-seed; pricing may evolve','range'],
     ['Nordic Defender','Sweden','Crowdsourced pentest','Standard','Contact sales','Per program','3 dedicated pentesters, 1 moderator, 2-week launch, triage, PDF reports','—','contact'],
     ['Nordic Defender','Sweden','Higher assurance','Premium','Contact sales','Per program','5 pentesters, 2 moderators, 1-week launch, annual maturity assessment','—','contact'],
     ['Nordic Defender','Sweden','Top-tier','VIP','Contact sales','Per program','Crowd-sourced team, 3 moderators, quarterly assessments','—','contact'],
@@ -436,8 +436,11 @@ const INSIGHTS = [
 // ─────────────────────────────────────────────────────────────────────────────
 const CAT_LABELS = {ptaas:'PTaaS',vm:'VM',bas:'BAS',appsec:'AppSec',awareness:'Awareness',grc:'GRC',xdr:'XDR'};
 
+// Data rows are [company, country, target, plan, price, billing, included, notes, transparency];
+// the All table appends the category label as a 10th element, so transparency is
+// addressed by fixed index 8 — not by row.length offsets.
 function priceClass(row){
-  const transparency = row[row.length-1];
+  const transparency = row[8];
   if(row[4]==='$0'||row[4]==='€0'||row[4].startsWith('$0')||row[4].startsWith('€0')||transparency==='free') return 'free';
   if(transparency==='contact') return 'contact';
   return '';
@@ -451,9 +454,9 @@ function buildAllTable(){
   }
   rows.forEach(r => {
     const tr = document.createElement('tr');
-    tr.dataset.cat = r[r.length-1];
-    tr.dataset.transparency = r[r.length-2];
-    const hasFree = r[4].startsWith('$0')||r[4].startsWith('€0')||r[r.length-2]==='free';
+    tr.dataset.cat = r[9];
+    tr.dataset.transparency = r[8];
+    const hasFree = r[4].startsWith('$0')||r[4].startsWith('€0')||r[8]==='free';
     tr.dataset.free = hasFree?'1':'0';
     const pc = priceClass(r);
     tr.innerHTML = `
@@ -552,6 +555,12 @@ function togglePriceFilter(el, val){
 
 function applyFilters(){
   const q = document.getElementById('global-search').value.toLowerCase();
+  // Category tabs get plain text search (category/price chips only exist on the All tab)
+  ['ptaas','vm','bas','appsec','awareness','grc','xdr'].forEach(cat => {
+    document.querySelectorAll(`#${cat}-tbody tr`).forEach(tr => {
+      tr.classList.toggle('hidden-row', !!q && !tr.textContent.toLowerCase().includes(q));
+    });
+  });
   const rows = document.querySelectorAll('#all-tbody tr');
   let visible = 0;
   rows.forEach(tr => {
@@ -590,7 +599,12 @@ function switchTab(name){
 // SORT
 // ─────────────────────────────────────────────────────────────────────────────
 const sortState = {};
-function sortTable(tableId, col){
+// First number in a price string ("$4,790/scanner/yr" → 4790); null when none (e.g. "Contact sales")
+function priceNum(s){
+  const m = s.replace(/,/g,'').match(/\d+(?:\.\d+)?/);
+  return m ? parseFloat(m[0]) : null;
+}
+function sortTable(tableId, col, numeric){
   const table = document.getElementById(tableId);
   const tbody = table.querySelector('tbody');
   const rows = Array.from(tbody.querySelectorAll('tr'));
@@ -600,6 +614,12 @@ function sortTable(tableId, col){
   rows.sort((a,b) => {
     const ta = a.cells[col]?.textContent.trim() || '';
     const tb = b.cells[col]?.textContent.trim() || '';
+    if(numeric){
+      const na = priceNum(ta), nb = priceNum(tb);
+      if(na!==null && nb!==null && na!==nb) return dir==='asc' ? na-nb : nb-na;
+      if(na===null && nb!==null) return 1;   // rows without a number ("Contact sales") always sink
+      if(nb===null && na!==null) return -1;
+    }
     return dir==='asc' ? ta.localeCompare(tb) : tb.localeCompare(ta);
   });
   rows.forEach(r => tbody.appendChild(r));

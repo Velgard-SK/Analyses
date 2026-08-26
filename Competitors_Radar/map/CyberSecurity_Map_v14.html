@@ -542,7 +542,7 @@ const CATCOLOR={
 };
 
 const COMPANY_PRICE={
-  'PortSwigger':    'Free Community edition; Pro $475/user/yr; Enterprise DAST from ~$6,850/yr',
+  'PortSwigger':    'Free Community edition; Pro $499/user/yr (raised from $449, Jan 2026); Enterprise DAST from ~$6,850/yr',
   'Snyk':           'Free (10 devs, limited); Team $25/dev/mo; Enterprise custom',
   'Offensity':      'Free (€0, limited); Starter €49/mo; Professional €389/mo; Enterprise custom',
   'WiseBee':        'Custom / contact sales (per org size)',
@@ -971,8 +971,8 @@ const C=[
 {n:'MokN',lat:48.870,lon:2.348,t:5,
  cat:'PenTest/AppSec',country:'France',city:'Paris',
  focus:'Enterprise, SMB',
- rev:'>€1 M ARR (500K+ users protected before raising)',ebitda:'Pre-profit',
- fund:'€2.6 M Seed (Oct 2025, Moonfire, OVNI Capital, Kima Ventures)',gov:'',
+ rev:'>€1 M ARR (1M+ users protected)',ebitda:'Pre-profit',
+ fund:'€2.6 M Seed (Oct 2025, Moonfire, OVNI Capital, Kima Ventures); $15 M / €12.9 M Series A (May 2026, GV lead — first GV investment in a French startup; Datadog participating)',gov:'',
  revData:[{y:'FY25',v:1}],
  founded:2023,
  tool:'MokN — deception-based credential protection with "phish-back" technology',
@@ -1604,16 +1604,16 @@ const C=[
  tool:'Validato — Continuous security validation platform for DORA/NIS2 compliance',
  note:'EU-native continuous security validation startup positioning automated continuous testing as a DORA and NIS2 compliance tool; targets EU financial sector and regulated SMBs; direct competitor to Velgard in the EU regulated SMB market; early stage; product details limited at time of writing (Jun 2026)'},
 
-// ══════════ UNITED KINGDOM (Strike) ══════════
+// ══════════ URUGUAY (Strike) ══════════
 
-{n:'Strike',lat:51.505,lon:-0.080,t:5,
- cat:'PenTest/PTaaS',country:'UK',city:'London',
+{n:'Strike',lat:-34.906,lon:-56.191,t:5,
+ cat:'PenTest/PTaaS',country:'Uruguay',city:'Montevideo',
  focus:'Enterprise, Mid-market',
  rev:'Not disclosed',ebitda:'Not disclosed',
  fund:'€16.5M total raised (Greyhound Capital, VentureFriends); MIT collaboration',gov:'',
  founded:2021,
  tool:'Strike Platform — AI-powered crowdsourced pentesting + PTaaS',
- note:'AI-powered crowdsourced penetration testing platform combining automated scanning with a vetted global community of security researchers; customers include Delivery Hero and OLX; MIT collaboration on offensive security research; one of the fastest-growing UK PTaaS platforms; London-based; founded 2021'},
+ note:'AI-powered crowdsourced penetration testing platform combining automated scanning with a vetted global community of security researchers; customers include Delivery Hero and OLX; MIT collaboration on offensive security research; one of the fastest-growing LatAm PTaaS platforms serving EU/US clients; Montevideo-based; founded 2021 by Santiago Rosenblatt'},
 
 ];
 
@@ -1622,7 +1622,8 @@ const EU_MEMBERS = new Set([
   'France','Belgium','Netherlands','Austria','Bulgaria','Romania','Germany',
   'Ireland','Italy','Spain','Portugal','Sweden','Finland','Czech Republic',
   'Slovakia','Hungary','Poland','Denmark','Greece','Croatia','Cyprus',
-  'Estonia','Latvia','Lithuania','Luxembourg','Malta','Slovenia'
+  'Estonia','Latvia','Lithuania','Luxembourg','Malta','Slovenia',
+  'EU' // companies tagged with a generic "EU" country (e.g. Validato)
 ]);
 
 function getPrimaryCountry(c){
@@ -1717,23 +1718,38 @@ const newsRingLayer = L.layerGroup().addTo(map);
 const favRingLayer  = L.layerGroup().addTo(map);
 const layer = L.layerGroup().addTo(map);
 
+// ── HTML ESCAPING (news badge titles come from scraped external pages) ───────
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function safeUrl(u){
+  u=String(u);
+  return /^https?:\/\//i.test(u)?escHtml(u):'#';
+}
+
+// ── SAFE STORAGE (localStorage throws in sandboxed/private contexts) ─────────
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
 // ── COMMENTS ─────────────────────────────────────────────────────────────────
 function saveComment(name,val){
-  if(val.trim()==='') localStorage.removeItem('cmt_'+name);
-  else localStorage.setItem('cmt_'+name,val);
+  if(val.trim()==='') lsDel('cmt_'+name);
+  else lsSet('cmt_'+name,val);
 }
-function loadComment(name){ return localStorage.getItem('cmt_'+name)||''; }
+function loadComment(name){ return lsGet('cmt_'+name)||''; }
 
 // ── FAVOURITES ───────────────────────────────────────────────────────────────
-const favourites = new Set(JSON.parse(localStorage.getItem('map_favs')||'[]'));
+const favourites = new Set(JSON.parse(lsGet('map_favs')||'[]'));
 let showFavsOnly = false;
 
-function saveFavs(){ localStorage.setItem('map_favs',JSON.stringify([...favourites])); }
+function saveFavs(){ lsSet('map_favs',JSON.stringify([...favourites])); }
 
 function rebuildFavRings(){
   favRingLayer.clearLayers();
   C.forEach(c=>{
-    if(!favourites.has(c.n)) return;
+    if(!favourites.has(c.n) || !passesFilters(c)) return;
     L.circleMarker([c.lat,c.lon],{
       radius:TRADIUS[c.t]+7, color:'#FFD700', weight:2,
       fill:false, interactive:false, className:'fav-ring-pulse'
@@ -1762,22 +1778,30 @@ function toggleFav(name){
   if(showFavsOnly) buildMarkers();
 }
 
+// ── FILTER PREDICATE (shared by markers and favourite rings) ─────────────────
+function passesFilters(c){
+  if(showStartupsOnly && !(c.founded>=STARTUP_FROM)) return false;
+  if(showFavsOnly && !favourites.has(c.n)) return false;
+  if(euOnly && !isEU(c)) return false;
+  if(countryFilter && getPrimaryCountry(c)!==countryFilter) return false;
+  if(!applyLegendFilter(c)) return false;
+  const q=searchQuery.trim().toLowerCase();
+  if(q){
+    const hay=(c.n+' '+c.country+' '+c.city+' '+c.cat+' '+c.focus+' '+(c.tool||'')+' '+(c.note||'')+' '+c.founded).toLowerCase();
+    if(!hay.includes(q)) return false;
+  }
+  return true;
+}
+
 // ── BUILD MARKERS ────────────────────────────────────────────────────────────
 function buildMarkers(){
   newsRingLayer.clearLayers();
   layer.clearLayers();
+  rebuildFavRings();
   const q=searchQuery.trim().toLowerCase();
   let vis=0;
   C.forEach(c=>{
-    if(showStartupsOnly && !(c.founded>=STARTUP_FROM)) return;
-    if(showFavsOnly && !favourites.has(c.n)) return;
-    if(euOnly && !isEU(c)) return;
-    if(countryFilter && getPrimaryCountry(c)!==countryFilter) return;
-    if(!applyLegendFilter(c)) return;
-    if(q){
-      const hay=(c.n+' '+c.country+' '+c.city+' '+c.cat+' '+c.focus+' '+(c.tool||'')+' '+(c.note||'')+' '+c.founded).toLowerCase();
-      if(!hay.includes(q)) return;
-    }
+    if(!passesFilters(c)) return;
     vis++;
     const ck=getCustKey(c.focus);
     const col=CCOLOR[ck], r=TRADIUS[c.t];
@@ -1819,7 +1843,7 @@ function buildMarkers(){
     const _newsAlertHtml = _badge ? `
       <div class="p-news-alert">
         <div class="p-news-alert-title">🔴 ${_badge.count} new article${_badge.count>1?'s':''}</div>
-        ${(_badge.items||[]).map(it=>`<a href="${it.url}" target="_blank" rel="noopener">${it.title}</a>`).join('')}
+        ${(_badge.items||[]).map(it=>`<a href="${safeUrl(it.url)}" target="_blank" rel="noopener">${escHtml(it.title)}</a>`).join('')}
       </div>` : '';
 
     const popup=`
@@ -1904,7 +1928,7 @@ function updateCounts(vis){
   const total=C.length;
   document.getElementById('counter').textContent=`${total} companies (${ns} startups)`;
   const sc=document.getElementById('search-count');
-  const anyFilter=searchQuery.trim()||showStartupsOnly||showFavsOnly||euOnly||countryFilter;
+  const anyFilter=searchQuery.trim()||showStartupsOnly||showFavsOnly||euOnly||countryFilter||hasLegendFilter();
   if(anyFilter){
     sc.textContent=`${vis} shown`;sc.style.display='inline';
   } else {sc.textContent='';sc.style.display='none';}
