@@ -32,7 +32,9 @@ function loadData() {
   }
   allOpportunities = data.opportunities.map(o => ({
     ...o,
-    closing_soon: daysUntil(o.deadline) <= 30 && daysUntil(o.deadline) > 0
+    // >= 0: keep the badge on the deadline day itself (submissions typically
+    // close at 17:00 Brussels, so that day is the most urgent one).
+    closing_soon: daysUntil(o.deadline) <= 30 && daysUntil(o.deadline) >= 0
   }));
   document.getElementById('last-updated').textContent =
     'Updated: ' + new Date(data.last_updated).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });

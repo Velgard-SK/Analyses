@@ -7,17 +7,19 @@ Updates data/opportunities.json and sends email digest.
 
 import json
 import os
+import re
 import smtplib
 import urllib.request
 import urllib.parse
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
 
 # ── Config ────────────────────────────────────────────────────────────────────
 NOTIFY_EMAIL   = "ivan.radvak@velgard.eu"
+DASHBOARD_URL  = "https://velgard.eu/Analyses/Finance_Radar/"
 SMTP_HOST      = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT      = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER      = os.getenv("SMTP_USER", "")       # set as GitHub secret
@@ -25,7 +27,8 @@ SMTP_PASS      = os.getenv("SMTP_PASS", "")       # set as GitHub secret
 
 KEYWORDS       = ["AI", "artificial intelligence", "cybersecurity", "cyber security",
                   "deep tech", "deeptech", "digital security", "machine learning",
-                  "data security", "privacy", "encryption", "autonomous systems"]
+                  "data security", "privacy", "encryption", "autonomous systems",
+                  "penetration testing", "threat intelligence", "quantum"]
 
 DATA_FILE      = Path(__file__).parent.parent / "data" / "opportunities.json"
 DATA_JS_FILE   = Path(__file__).parent.parent / "data" / "data.js"
@@ -42,8 +45,14 @@ STALE_AFTER_DAYS = 75
 TODAY_ISO = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 def days_until(date_str: str) -> int:
+    """Calendar days until an ISO date: 0 on the deadline day itself.
+
+    Compares dates, not datetimes — a midnight deadline minus an afternoon
+    "now" is a negative timedelta whose .days is already -1, which silently
+    turned every deadline-day call into an expired one.
+    """
     d = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-    return (d.replace(tzinfo=timezone.utc) - datetime.now(timezone.utc)).days
+    return (d.date() - datetime.now(timezone.utc).date()).days
 
 def days_since(date_str: str) -> int:
     """Days elapsed since an ISO date. Returns a large number if unparseable."""
@@ -55,9 +64,26 @@ def days_since(date_str: str) -> int:
     except Exception:
         return 10**6
 
+# Keywords must match on word boundaries. A naive substring check made "AI"
+# match inside sustAIn, mAIntain, trAIn, chAIn and AIr, so calls about
+# sustainable hydropower sailed through the relevance filter as "AI".
+_KEYWORD_RE = re.compile(
+    r"\b(?:" + "|".join(re.escape(k) for k in KEYWORDS) + r")\b",
+    re.IGNORECASE,
+)
+
 def is_relevant(text: str) -> bool:
-    text_lower = text.lower()
-    return any(kw.lower() in text_lower for kw in KEYWORDS)
+    return bool(_KEYWORD_RE.search(text))
+
+_CATEGORY_RES = [
+    ("AI",            re.compile(r"\b(?:artificial intelligence|AI|machine learning)\b", re.I)),
+    ("cybersecurity", re.compile(r"\b(?:cyber ?security|encryption|data security|digital security|privacy|penetration testing|threat intelligence)\b", re.I)),
+    ("deep tech",     re.compile(r"\b(?:deep ?tech|quantum|autonomous systems)\b", re.I)),
+]
+
+def categorize(text: str) -> list:
+    cats = [name for name, rx in _CATEGORY_RES if rx.search(text)]
+    return cats or ["deep tech"]
 
 def load_existing() -> dict:
     if DATA_FILE.exists():
@@ -79,7 +105,18 @@ def save_data(data: dict):
 
 # ── EU Funding & Tenders Portal ───────────────────────────────────────────────
 SEDIA_URL   = "https://api.tech.ec.europa.eu/search-api/prod/rest/search"
-SEDIA_PAGES = 3     # ~100 hits/page; heavy duplication, so a few pages is plenty
+SEDIA_PAGES = 2     # ~100 hits/page per search; heavy duplication within a search
+
+# Results come back relevance-ranked against the search text, so a single query
+# only ever surfaces one thematic slice of the portal. Each of these runs as its
+# own search and the results are merged — "privacy encryption" and "quantum"
+# reach calls the AI/cybersecurity query never ranks highly enough to return.
+SEDIA_SEARCHES = [
+    "artificial intelligence cybersecurity",
+    "privacy encryption data protection",
+    "quantum deep tech autonomous systems",
+    "penetration testing threat intelligence",
+]
 
 # type 1 = grant topics (type 0 is portal support/Q&A pages, which are noise).
 # status 31094501 = forthcoming, 31094502 = open, 31094503 = closed. The status
@@ -132,70 +169,67 @@ def fetch_eu_portal() -> list:
         return lst[0] if lst else fallback
 
     results, seen = [], set()
-    try:
-        for page in range(1, SEDIA_PAGES + 1):
-            data = _sedia_request("artificial intelligence cybersecurity", page)
-            rows = data.get("results") or []
-            if not rows:
-                break
+    for search_text in SEDIA_SEARCHES:
+        try:
+            for page in range(1, SEDIA_PAGES + 1):
+                data = _sedia_request(search_text, page)
+                rows = data.get("results") or []
+                if not rows:
+                    break
 
-            for item in rows:
-                md = item.get("metadata", {})
-                opp_id = first(md.get("identifier") or []) or item.get("id", "")
-                if not opp_id or opp_id in seen:
-                    continue
-                seen.add(opp_id)
+                for item in rows:
+                    md = item.get("metadata", {})
+                    opp_id = first(md.get("identifier") or []) or item.get("id", "")
+                    if not opp_id or opp_id in seen:
+                        continue
+                    seen.add(opp_id)
 
-                deadline_raw = first(md.get("deadlineDate") or [])
-                deadline = deadline_raw[:10] if deadline_raw else ""
-                if not deadline or days_until(deadline) <= 0:
-                    continue   # no deadline, or already closed
+                    deadline_raw = first(md.get("deadlineDate") or [])
+                    deadline = deadline_raw[:10] if deadline_raw else ""
+                    # >= 0 keeps a call through its final day — most portal
+                    # deadlines fall at 17:00 Brussels, so the deadline date
+                    # itself is still submittable (and the day it matters most).
+                    if not deadline or days_until(deadline) < 0:
+                        continue   # no deadline, or already closed
 
-                title = first(md.get("title") or [])
-                # The portal has no description field; the readable blurb is the
-                # top-level summary, which falls back to the indexed content.
-                desc = (item.get("summary") or item.get("content") or "").strip()
-                if not is_relevant(f"{title} {desc}"):
-                    continue
+                    title = first(md.get("title") or [])
+                    # The portal has no description field; the readable blurb is
+                    # the top-level summary, falling back to indexed content.
+                    desc = (item.get("summary") or item.get("content") or "").strip()
+                    if not is_relevant(f"{title} {desc}"):
+                        continue
 
-                combined = f"{title} {desc}".lower()
-                categories = []
-                if "artificial intelligence" in combined or " ai " in combined:
-                    categories.append("AI")
-                if "cybersecurity" in combined or "cyber security" in combined:
-                    categories.append("cybersecurity")
-                if "deep tech" in combined or "deeptech" in combined:
-                    categories.append("deep tech")
-                if not categories:
-                    categories = ["deep tech"]
+                    # programmeName does not exist on these records; callTitle is
+                    # the human-readable cluster (e.g. "ENERGY") and typesOfAction
+                    # the instrument (e.g. "HORIZON Innovation Actions").
+                    call_title = first(md.get("callTitle") or [])
+                    action     = first(md.get("typesOfAction") or [])
+                    programme  = " — ".join(p for p in (action, call_title) if p) or "Horizon Europe"
 
-                # programmeName does not exist on these records; callTitle is the
-                # human-readable cluster (e.g. "ENERGY") and typesOfAction the
-                # instrument (e.g. "HORIZON Innovation Actions").
-                call_title = first(md.get("callTitle") or [])
-                action     = first(md.get("typesOfAction") or [])
-                programme  = " — ".join(p for p in (action, call_title) if p) or "Horizon Europe"
+                    open_date = first(md.get("startDate") or [])[:10]
+                    status = "forthcoming" if (open_date and open_date > TODAY_ISO) else "open"
 
-                results.append({
-                    "id": opp_id,
-                    "title": title,
-                    "source": "EIC" if "EIC" in opp_id.upper() else "EU Funding Portal",
-                    "programme": programme,
-                    "category": categories,
-                    "status": "open",
-                    "open_date": first(md.get("startDate") or [])[:10],
-                    "deadline": deadline,
-                    "budget": "See call page",
-                    "description": (desc[:400] + "...") if len(desc) > 400 else desc,
-                    "url": ("https://ec.europa.eu/info/funding-tenders/opportunities"
-                            f"/portal/screen/opportunities/topic-details/{opp_id}"),
-                    "tags": ["consortium", "EU"],
-                    "verified_on": TODAY_ISO,   # seen live in the portal just now
-                    "is_new": False,
-                    "closing_soon": False,
-                })
-    except Exception as e:
-        print(f"⚠ EU Portal fetch error: {e}")
+                    results.append({
+                        "id": opp_id,
+                        "title": title,
+                        "source": "EIC" if "EIC" in opp_id.upper() else "EU Funding Portal",
+                        "programme": programme,
+                        "category": categorize(f"{title} {desc}"),
+                        "status": status,
+                        "open_date": open_date,
+                        "deadline": deadline,
+                        "budget": "See call page",
+                        "description": (desc[:400] + "...") if len(desc) > 400 else desc,
+                        "url": ("https://ec.europa.eu/info/funding-tenders/opportunities"
+                                f"/portal/screen/opportunities/topic-details/{opp_id}"),
+                        "tags": ["consortium", "EU"],
+                        "verified_on": TODAY_ISO,   # seen live in the portal just now
+                        "is_new": False,
+                        "closing_soon": False,
+                    })
+        except Exception as e:
+            # One failed search shouldn't lose the others' results.
+            print(f"⚠ EU Portal fetch error on '{search_text}': {e}")
 
     print(f"  EU Portal: {len(results)} relevant results ({len(seen)} topics examined)")
     return results
@@ -238,15 +272,32 @@ EIC_HARDCODED = [
     },
 ]
 
-# ── NGI Cascade calls ─────────────────────────────────────────────────────────
-# Verified 2026-08-26: the NGI initiative is winding down and ngi.eu states
-# "All the NGI projects are ending and there are no other calls available at the
-# moment." The final NGI Zero Commons Fund call closed 2026-06-01; Taler and
-# Fediversity closed 2026-08-01. NLnet has paused submissions while it launches
-# successor programmes (Restack, CodeSupply, ELFA) under the Open Internet Stack
-# umbrella — no concrete calls or deadlines announced yet. Re-add only once a
-# successor call is actually open, with its real deadline.
-NGI_CALLS: list = []
+# ── Cascade calls (NGI successors) ────────────────────────────────────────────
+# The NGI initiative itself has concluded (final Commons Fund call closed
+# 2026-06-01; Taler and Fediversity 2026-08-01). Its successor is NLnet's "Open
+# Internet Stack" umbrella. Verified 2026-08-26 on nlnet.nl: the new calls open
+# 2026-09-03 and close 2026-11-03 12:00 CEST, covering Restack (NGI Zero-style
+# grants for open source tech), CodeSupply (software supply chain security) and
+# ELFA (encrypted local-first architecture).
+NGI_CALLS = [
+    {
+        "id": "NLNET-OPEN-INTERNET-STACK-2026-11",
+        "title": "NLnet Open Internet Stack — Restack / CodeSupply / ELFA (November round)",
+        "source": "Cascade",
+        "programme": "Open Internet Stack (NGI successor, Horizon Europe)",
+        "category": ["cybersecurity", "deep tech"],
+        "status": "forthcoming",
+        "open_date": "2026-09-03",
+        "deadline": "2026-11-03",
+        "budget": "€5,000–€50,000 (larger amounts if justified)",
+        "description": "First call round of NLnet's NGI successor programmes: Restack funds free and open source internet technology in the NGI Zero mould; CodeSupply targets software supply chain security tooling (SBOM, dependency integrity); ELFA funds encrypted local-first collaboration platforms. Lightweight application, single-page proposal. Deadline 3 November 2026, 12:00 CEST.",
+        "url": "https://nlnet.nl/propose/",
+        "tags": ["cascade", "open source", "supply chain", "fast-track"],
+        "verified_on": "2026-08-26",
+        "is_new": False,
+        "closing_soon": False,
+    },
+]
 
 # ── Slovak calls ──────────────────────────────────────────────────────────────
 # Deliberately empty — this is a decision, not an oversight or a TODO.
@@ -308,17 +359,12 @@ def merge_opportunities(existing: list, fresh: list) -> tuple[list, list, list]:
 
     # Mark closing soon
     closing = []
-    today = datetime.now(timezone.utc)
     for o in updated:
         if o.get("deadline"):
             try:
-                d = datetime.fromisoformat(o["deadline"])
-                if d.tzinfo is None:
-                    d = d.replace(tzinfo=timezone.utc)
-                else:
-                    d = d.astimezone(timezone.utc)
-                days = (d - today).days
-                o["closing_soon"] = 0 < days <= CLOSING_DAYS
+                days = days_until(o["deadline"])
+                # 0 included: the deadline day itself is the most urgent one.
+                o["closing_soon"] = 0 <= days <= CLOSING_DAYS
                 if o["closing_soon"]:
                     closing.append(o)
             except Exception:
@@ -342,7 +388,10 @@ def drop_stale(opps: list) -> list:
     for o in opps:
         deadline = (o.get("deadline") or "").strip()
         if deadline:
-            if days_until(deadline) > 0:
+            # >= 0: keep through the deadline day — submissions typically close
+            # at 17:00 Brussels, and dropping a call the morning it is due hides
+            # it exactly when it matters most.
+            if days_until(deadline) >= 0:
                 kept.append(o)
             else:
                 print(f"  ⌛ expired, dropping: {o['id']} (deadline {deadline})")
@@ -393,7 +442,7 @@ def send_email(new_calls: list, closing_calls: list):
           <div style="margin-bottom:16px;padding:12px;background:#22263a;border-radius:8px">
             <div style="font-size:15px;font-weight:600;margin-bottom:4px">{o['title']}</div>
             <div style="font-size:12px;color:#8892a4;margin-bottom:6px">{o['programme']} · Deadline: {o['deadline']} · Budget: {o['budget']}</div>
-            <div style="font-size:13px;color:#b4bcd0;margin-bottom:8px">{o['description'][:200]}...</div>
+            <div style="font-size:13px;color:#b4bcd0;margin-bottom:8px">{(o['description'][:200] + '...') if len(o['description']) > 200 else o['description']}</div>
             <a href="{o['url']}" style="color:#4f8ef7;font-size:12px">Open call page ↗</a>
           </div>
             """
@@ -406,19 +455,20 @@ def send_email(new_calls: list, closing_calls: list):
         """
         for o in closing_calls:
             days = days_until(o["deadline"])
+            left = "closes TODAY" if days == 0 else f"{days} day{'s' if days != 1 else ''} left"
             html += f"""
           <div style="margin-bottom:16px;padding:12px;background:#22263a;border-radius:8px">
             <div style="font-size:15px;font-weight:600;margin-bottom:4px">{o['title']}</div>
-            <div style="font-size:12px;color:#f59e0b;margin-bottom:6px">⏰ {days} days left — Deadline: {o['deadline']}</div>
+            <div style="font-size:12px;color:#f59e0b;margin-bottom:6px">⏰ {left} — Deadline: {o['deadline']}</div>
             <a href="{o['url']}" style="color:#4f8ef7;font-size:12px">Open call page ↗</a>
           </div>
             """
         html += "</div>"
 
-    html += """
+    html += f"""
     <p style="font-size:11px;color:#4a5568;text-align:center;margin-top:20px">
       Velgard Financing Radar · Auto-generated daily digest<br>
-      <a href="https://velgard.github.io/finance-radar" style="color:#4f8ef7">Open dashboard</a>
+      <a href="{DASHBOARD_URL}" style="color:#4f8ef7">Open dashboard</a>
     </p>
     </body></html>
     """
