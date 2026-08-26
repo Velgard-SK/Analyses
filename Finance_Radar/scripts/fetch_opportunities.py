@@ -30,10 +30,29 @@ DATA_FILE      = Path(__file__).parent.parent / "data" / "opportunities.json"
 DATA_JS_FILE   = Path(__file__).parent.parent / "data" / "data.js"
 CLOSING_DAYS   = 30   # flag as closing soon within N days
 
+# Hand-curated entries below are transcribed from official programme pages and
+# they rot: calls close, deadlines move, whole programmes wind down. Every entry
+# therefore carries verified_on, and anything not re-confirmed within this window
+# is dropped rather than published as if it were still current. Prefer adding a
+# live source over adding a hardcoded entry.
+STALE_AFTER_DAYS = 75
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
+TODAY_ISO = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
 def days_until(date_str: str) -> int:
     d = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
     return (d.replace(tzinfo=timezone.utc) - datetime.now(timezone.utc)).days
+
+def days_since(date_str: str) -> int:
+    """Days elapsed since an ISO date. Returns a large number if unparseable."""
+    try:
+        d = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+        if d.tzinfo is None:
+            d = d.replace(tzinfo=timezone.utc)
+        return (datetime.now(timezone.utc) - d).days
+    except Exception:
+        return 10**6
 
 def is_relevant(text: str) -> bool:
     text_lower = text.lower()
@@ -127,6 +146,7 @@ def fetch_eu_portal() -> list:
                     "description": desc[:400] + "..." if len(desc) > 400 else desc,
                     "url": url_path,
                     "tags": ["consortium", "EU"],
+                    "verified_on": TODAY_ISO,   # seen live in the portal just now
                     "is_new": False,
                     "closing_soon": False,
                 })
@@ -151,6 +171,7 @@ EIC_HARDCODED = [
         "description": "EIC Accelerator supports startups and SMEs developing breakthrough innovations at TRL 6-8. Six cut-off dates per year; next cut-off 2 September 2026. 2026 budget: €414M (Open) + €220M (Challenges). Slovak companies fully eligible.",
         "url": "https://eic.ec.europa.eu/eic-funding-opportunities/eic-accelerator_en",
         "tags": ["SME", "startup", "equity", "blended finance"],
+        "verified_on": "2026-08-26",
         "is_new": False,
         "closing_soon": False,
     },
@@ -167,50 +188,31 @@ EIC_HARDCODED = [
         "description": "EIC Pathfinder Challenges funds visionary research on radical new technologies within defined thematic areas. AI foundations, advanced security, and novel computing paradigms are eligible themes. Note: EIC Pathfinder Open 2026 (separate track) already closed on 12 May 2026.",
         "url": "https://eic.ec.europa.eu/eic-funding-opportunities/eic-pathfinder_en",
         "tags": ["research", "early-stage", "TRL1-4"],
+        "verified_on": "2026-08-26",
         "is_new": False,
         "closing_soon": False,
     },
 ]
 
 # ── NGI Cascade calls ─────────────────────────────────────────────────────────
-NGI_CALLS = [
-    {
-        "id": "NGI-CASCADE-ROLLING-2026",
-        "title": "NGI Cascade Funding — Rolling Calls",
-        "source": "Cascade",
-        "programme": "NGI / Next Generation Internet",
-        "category": ["cybersecurity", "AI", "deep tech"],
-        "status": "open",
-        "open_date": "2026-01-01",
-        "deadline": "",
-        "budget": "Typically €5,000–€150,000 per project",
-        "description": "NGI runs several rolling cascade-funding sub-programmes (Taler for privacy-preserving payments, Fediversity for decentralised tech, Zero Commons for open internet/privacy/cybersecurity R&D, and others). New rounds open roughly every 2 months with lightweight applications and fast decisions. See the open-calls page for the current round.",
-        "url": "https://ngi.eu/opencalls/",
-        "tags": ["cascade", "privacy", "rolling", "fast-track"],
-        "is_new": False,
-        "closing_soon": False,
-    },
-]
+# Verified 2026-08-26: the NGI initiative is winding down and ngi.eu states
+# "All the NGI projects are ending and there are no other calls available at the
+# moment." The final NGI Zero Commons Fund call closed 2026-06-01; Taler and
+# Fediversity closed 2026-08-01. NLnet has paused submissions while it launches
+# successor programmes (Restack, CodeSupply, ELFA) under the Open Internet Stack
+# umbrella — no concrete calls or deadlines announced yet. Re-add only once a
+# successor call is actually open, with its real deadline.
+NGI_CALLS: list = []
 
 # ── Slovak calls ──────────────────────────────────────────────────────────────
-SLOVAK_CALLS = [
-    {
-        "id": "SIEA-INOVACIE-DIGITALNE-VOUCHERY-2026",
-        "title": "Slovak Innovation & Digital Vouchers — SIEA 2026",
-        "source": "Slovak",
-        "programme": "Slovak Recovery and Resilience Plan",
-        "category": ["AI", "deep tech"],
-        "status": "open",
-        "open_date": "2026-01-01",
-        "deadline": "2026-12-31",
-        "budget": "Up to 85% co-financing (de minimis, €300k cap)",
-        "description": "Innovation vouchers support Slovak businesses cooperating with R&D institutions on innovation, including AI and digital transformation. Digital vouchers cover digitalization of services. Rolling submission throughout 2026.",
-        "url": "https://www.siea.sk/inovacne-a-digitalne-vouchery/",
-        "tags": ["Slovak", "SME", "voucher", "rolling"],
-        "is_new": False,
-        "closing_soon": False,
-    },
-]
+# Verified 2026-08-26: no SIEA voucher call could be confirmed as open with a
+# real deadline. Digital vouchers (09I02-03-V04) closed 2023-11-24. The 2026
+# innovation-voucher sub-calls (progressive/dual-use technologies) had their
+# deadline extended only to 2026-06-30, now passed, and SIEA reports the
+# allocation as strained/exhausted. The previous "2026-12-31" deadline here was
+# not sourced from any call document. Re-add per specific sub-call, with its own
+# id and real deadline, rather than as one catch-all "vouchers" entry.
+SLOVAK_CALLS: list = []
 
 # ── Other European calls ──────────────────────────────────────────────────────
 OTHER_CALLS = [
@@ -227,6 +229,7 @@ OTHER_CALLS = [
         "description": "Eurostars supports R&D-intensive SMEs in international collaborative projects. Slovakia is a member state. Call 11 cut-off: 10 September 2026, 14:00 CEST. Requires min. 2 partners from different EUREKA countries.",
         "url": "https://www.eurekanetwork.org/programmes-and-calls/eurostars/eurostars-call-for-projects-september-2026/",
         "tags": ["international", "consortium", "R&D"],
+        "verified_on": "2026-08-26",
         "is_new": False,
         "closing_soon": False,
     },
@@ -269,10 +272,42 @@ def merge_opportunities(existing: list, fresh: list) -> tuple[list, list, list]:
             except Exception:
                 pass
 
-    # Remove expired
-    updated = [o for o in updated if not o.get("deadline") or days_until(o["deadline"]) > 0]
+    updated = drop_stale(updated)
 
     return updated, new_calls, closing
+
+def drop_stale(opps: list) -> list:
+    """Drop anything we can no longer vouch for.
+
+    An entry survives only if it has a future deadline, or is explicitly marked
+    rolling AND was re-confirmed within STALE_AFTER_DAYS. A blank deadline used
+    to satisfy the old expiry check outright, which made such entries immortal —
+    they stayed on the radar long after the programme behind them wound down.
+    Every entry now has an expiry path: live API results are re-stamped on each
+    run, so one that stops being listed ages out on its own.
+    """
+    kept = []
+    for o in opps:
+        deadline = (o.get("deadline") or "").strip()
+        if deadline:
+            if days_until(deadline) > 0:
+                kept.append(o)
+            else:
+                print(f"  ⌛ expired, dropping: {o['id']} (deadline {deadline})")
+            continue
+
+        # No deadline: only rolling entries may stay, and only while fresh.
+        if not o.get("rolling"):
+            print(f"  ⚠ no deadline and not marked rolling, dropping: {o['id']}")
+            continue
+
+        age = days_since(o.get("verified_on", ""))
+        if age > STALE_AFTER_DAYS:
+            print(f"  ⚠ unverified for {age}d, dropping: {o['id']} — re-confirm and update verified_on")
+            continue
+
+        kept.append(o)
+    return kept
 
 # ── Email notification ────────────────────────────────────────────────────────
 def send_email(new_calls: list, closing_calls: list):

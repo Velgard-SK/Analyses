@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-26T19:25:48.978864+00:00",
+  "last_updated": "2026-08-26T19:37:54.418639+00:00",
   "opportunities": [
     {
       "id": "HORIZON-EIC-2026-ACCELERATOR",
@@ -23,6 +23,7 @@
         "equity",
         "blended finance"
       ],
+      "verified_on": "2026-08-26",
       "is_new": false,
       "closing_soon": true
     },
@@ -46,30 +47,7 @@
         "early-stage",
         "TRL1-4"
       ],
-      "is_new": false,
-      "closing_soon": false
-    },
-    {
-      "id": "SIEA-INOVACIE-DIGITALNE-VOUCHERY-2026",
-      "title": "Slovak Innovation & Digital Vouchers — SIEA 2026",
-      "source": "Slovak",
-      "programme": "Slovak Recovery and Resilience Plan",
-      "category": [
-        "AI",
-        "deep tech"
-      ],
-      "status": "open",
-      "open_date": "2026-01-01",
-      "deadline": "2026-12-31",
-      "budget": "Up to 85% co-financing (de minimis, €300k cap)",
-      "description": "Innovation vouchers support Slovak businesses cooperating with R&D institutions on innovation, including AI and digital transformation. Digital vouchers cover digitalization of services. Rolling submission throughout 2026.",
-      "url": "https://www.siea.sk/inovacne-a-digitalne-vouchery/",
-      "tags": [
-        "Slovak",
-        "SME",
-        "voucher",
-        "rolling"
-      ],
+      "verified_on": "2026-08-26",
       "is_new": false,
       "closing_soon": false
     },
@@ -94,33 +72,9 @@
         "consortium",
         "R&D"
       ],
+      "verified_on": "2026-08-26",
       "is_new": false,
       "closing_soon": true
-    },
-    {
-      "id": "NGI-CASCADE-ROLLING-2026",
-      "title": "NGI Cascade Funding — Rolling Calls",
-      "source": "Cascade",
-      "programme": "NGI / Next Generation Internet",
-      "category": [
-        "cybersecurity",
-        "AI",
-        "deep tech"
-      ],
-      "status": "open",
-      "open_date": "2026-01-01",
-      "deadline": "",
-      "budget": "Typically €5,000–€150,000 per project",
-      "description": "NGI runs several rolling cascade-funding sub-programmes (Taler for privacy-preserving payments, Fediversity for decentralised tech, Zero Commons for open internet/privacy/cybersecurity R&D, and others). New rounds open roughly every 2 months with lightweight applications and fast decisions. See the open-calls page for the current round.",
-      "url": "https://ngi.eu/opencalls/",
-      "tags": [
-        "cascade",
-        "privacy",
-        "rolling",
-        "fast-track"
-      ],
-      "is_new": true,
-      "closing_soon": false
     }
   ]
 }
