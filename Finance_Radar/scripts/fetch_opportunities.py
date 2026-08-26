@@ -249,13 +249,21 @@ EIC_HARDCODED = [
 NGI_CALLS: list = []
 
 # ── Slovak calls ──────────────────────────────────────────────────────────────
-# Verified 2026-08-26: no SIEA voucher call could be confirmed as open with a
-# real deadline. Digital vouchers (09I02-03-V04) closed 2023-11-24. The 2026
-# innovation-voucher sub-calls (progressive/dual-use technologies) had their
-# deadline extended only to 2026-06-30, now passed, and SIEA reports the
-# allocation as strained/exhausted. The previous "2026-12-31" deadline here was
-# not sourced from any call document. Re-add per specific sub-call, with its own
-# id and real deadline, rather than as one catch-all "vouchers" entry.
+# Deliberately empty — this is a decision, not an oversight or a TODO.
+#
+# Slovak national funders publish no machine-readable feed, so entries here can
+# only ever be transcribed by hand, and hand-transcription is what repeatedly
+# put wrong data on the radar: a "SKIT" agency that does not exist (skit.sk is
+# a parked domain), and a SIEA voucher entry carrying a 2026-12-31 deadline that
+# appears in no call document. Both read as authoritative on the dashboard.
+#
+# The radar therefore covers EU-level calls only, via the live portal feed. That
+# is a real coverage gap: SIEA, APVV and similar national schemes will not show
+# up, and have to be tracked separately.
+#
+# If a specific Slovak call is ever worth adding, add that one call — with its
+# own id, a deadline copied from the actual call document, and a verified_on
+# date — never a standing catch-all "vouchers" entry that outlives its facts.
 SLOVAK_CALLS: list = []
 
 # ── Other European calls ──────────────────────────────────────────────────────
