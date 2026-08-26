@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-26T19:37:54.418639+00:00",
+  "last_updated": "2026-08-26T19:56:19.802958+00:00",
   "opportunities": [
     {
       "id": "HORIZON-EIC-2026-ACCELERATOR",
@@ -75,6 +75,161 @@
       "verified_on": "2026-08-26",
       "is_new": false,
       "closing_soon": true
+    },
+    {
+      "id": "HORIZON-CL3-2027-02-CS-ECCC-01",
+      "title": "Artificial Intelligence for Cybersecurity applications",
+      "source": "EU Funding Portal",
+      "programme": "HORIZON  Research and Innovation Actions — Indirectly Managed Action by the ECCC (2027)",
+      "category": [
+        "AI",
+        "cybersecurity"
+      ],
+      "status": "open",
+      "open_date": "2027-03-02",
+      "deadline": "2027-09-15",
+      "budget": "See call page",
+      "description": "Artificial Intelligence for Cybersecurity applications",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/HORIZON-CL3-2027-02-CS-ECCC-01",
+      "tags": [
+        "consortium",
+        "EU"
+      ],
+      "verified_on": "2026-08-26",
+      "is_new": true,
+      "closing_soon": false
+    },
+    {
+      "id": "HORIZON-CL3-2026-02-CS-ECCC-02",
+      "title": "Enhancing the Security, Privacy and Robustness of AI Models and Systems (SecureAI)",
+      "source": "EU Funding Portal",
+      "programme": "HORIZON Innovation Actions — Indirectly Managed Action by the ECCC (2026)",
+      "category": [
+        "AI"
+      ],
+      "status": "open",
+      "open_date": "2026-03-03",
+      "deadline": "2026-09-15",
+      "budget": "See call page",
+      "description": "Enhancing the Security, Privacy and Robustness of AI Models and Systems (SecureAI)",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/HORIZON-CL3-2026-02-CS-ECCC-02",
+      "tags": [
+        "consortium",
+        "EU"
+      ],
+      "verified_on": "2026-08-26",
+      "is_new": true,
+      "closing_soon": true
+    },
+    {
+      "id": "HORIZON-HLTH-2027-02-TOOL-01-two-stage",
+      "title": "Development of predictive biomarkers of disease progression and treatment response by using AI methodologies for chronic non-communicable diseases",
+      "source": "EU Funding Portal",
+      "programme": "HORIZON  Research and Innovation Actions — Cluster 1 - Health (Two stage - 2027)",
+      "category": [
+        "AI"
+      ],
+      "status": "open",
+      "open_date": "2027-02-10",
+      "deadline": "2027-04-13",
+      "budget": "See call page",
+      "description": "Development of predictive biomarkers of disease progression and treatment response by using AI methodologies for chronic non-communicable diseases",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/HORIZON-HLTH-2027-02-TOOL-01-two-stage",
+      "tags": [
+        "consortium",
+        "EU"
+      ],
+      "verified_on": "2026-08-26",
+      "is_new": true,
+      "closing_soon": false
+    },
+    {
+      "id": "HORIZON-CL2-2027-01-DEMOCRACY-04",
+      "title": "Addressing the impact of artificial intelligence, cyberviolence, and deepfakes on equality, democracy and inclusive societies",
+      "source": "EU Funding Portal",
+      "programme": "HORIZON  Research and Innovation Actions — Culture, Creativity and Inclusive Society - 2027",
+      "category": [
+        "AI"
+      ],
+      "status": "open",
+      "open_date": "2027-05-13",
+      "deadline": "2027-09-23",
+      "budget": "See call page",
+      "description": "Addressing the impact of artificial intelligence, cyberviolence, and deepfakes on equality, democracy and inclusive societies",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/HORIZON-CL2-2027-01-DEMOCRACY-04",
+      "tags": [
+        "consortium",
+        "EU"
+      ],
+      "verified_on": "2026-08-26",
+      "is_new": true,
+      "closing_soon": false
+    },
+    {
+      "id": "HORIZON-CL2-2027-01-TRANSFO-05",
+      "title": "The effective use of artificial intelligence in learning environments in pre-primary and primary education",
+      "source": "EU Funding Portal",
+      "programme": "HORIZON  Research and Innovation Actions — Culture, Creativity and Inclusive Society - 2027",
+      "category": [
+        "AI"
+      ],
+      "status": "open",
+      "open_date": "2027-05-13",
+      "deadline": "2027-09-23",
+      "budget": "See call page",
+      "description": "The effective use of artificial intelligence in learning environments in pre-primary and primary education",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/HORIZON-CL2-2027-01-TRANSFO-05",
+      "tags": [
+        "consortium",
+        "EU"
+      ],
+      "verified_on": "2026-08-26",
+      "is_new": true,
+      "closing_soon": false
+    },
+    {
+      "id": "HORIZON-CL4-2027-04-DIGITAL-EMERGING-05",
+      "title": "Apply AI: AI-Driven Robotics for Industry: Enabling System Integration and Adoption (IA) (Partnership in AI, Data and Robotics)",
+      "source": "EU Funding Portal",
+      "programme": "HORIZON Innovation Actions — DIGITAL",
+      "category": [
+        "deep tech"
+      ],
+      "status": "open",
+      "open_date": "2026-11-17",
+      "deadline": "2027-03-18",
+      "budget": "See call page",
+      "description": "Apply AI: AI-Driven Robotics for Industry: Enabling System Integration and Adoption (IA) (Partnership in AI, Data and Robotics)",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/HORIZON-CL4-2027-04-DIGITAL-EMERGING-05",
+      "tags": [
+        "consortium",
+        "EU"
+      ],
+      "verified_on": "2026-08-26",
+      "is_new": true,
+      "closing_soon": false
+    },
+    {
+      "id": "HORIZON-INFRA-2027-TECH-01-02",
+      "title": "Pioneering Destination Earth for a Sustainable Future: Large-Scale Pilots and Demonstrators",
+      "source": "EU Funding Portal",
+      "programme": "HORIZON  Research and Innovation Actions — Research Infrastructures 2027",
+      "category": [
+        "deep tech"
+      ],
+      "status": "open",
+      "open_date": "2027-03-09",
+      "deadline": "2027-06-15",
+      "budget": "See call page",
+      "description": "Pioneering Destination Earth for a Sustainable Future: Large-Scale Pilots and Demonstrators",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/HORIZON-INFRA-2027-TECH-01-02",
+      "tags": [
+        "consortium",
+        "EU"
+      ],
+      "verified_on": "2026-08-26",
+      "is_new": true,
+      "closing_soon": false
     }
   ]
 }

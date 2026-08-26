@@ -10,6 +10,7 @@ import os
 import smtplib
 import urllib.request
 import urllib.parse
+import uuid
 from datetime import datetime, timezone, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -77,74 +78,117 @@ def save_data(data: dict):
     print(f"✓ Saved {len(data['opportunities'])} opportunities")
 
 # ── EU Funding & Tenders Portal ───────────────────────────────────────────────
-def fetch_eu_portal() -> list:
+SEDIA_URL   = "https://api.tech.ec.europa.eu/search-api/prod/rest/search"
+SEDIA_PAGES = 3     # ~100 hits/page; heavy duplication, so a few pages is plenty
+
+# type 1 = grant topics (type 0 is portal support/Q&A pages, which are noise).
+# status 31094501 = forthcoming, 31094502 = open, 31094503 = closed. The status
+# codes alone are not trustworthy — records tagged "open" still carry deadlines
+# from 2021 — so the real currency check is done client-side on deadlineDate.
+SEDIA_QUERY = {"bool": {"must": [
+    {"terms": {"type": ["1"]}},
+    {"terms": {"status": ["31094501", "31094502"]}},
+]}}
+
+def _sedia_request(text: str, page: int, page_size: int = 100):
+    """One SEDIA search call.
+
+    The endpoint rejects GET with 405, and silently ignores `query` when it is
+    passed as a plain form field or in the query string — a request built that
+    way returns millions of unfiltered rows rather than an error. It is only
+    honoured as a multipart part explicitly typed application/json, so the body
+    is assembled by hand here (stdlib only: the workflow pip-installs nothing).
     """
-    EU Funding & Tenders public search API.
-    Returns open calls matching Velgard keywords.
+    qs = urllib.parse.urlencode({
+        "apiKey": "SEDIA", "text": text,
+        "pageSize": str(page_size), "pageNumber": str(page),
+    })
+    boundary = uuid.uuid4().hex
+    body = (
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="query"\r\n'
+        f"Content-Type: application/json\r\n\r\n"
+        f"{json.dumps(SEDIA_QUERY)}\r\n"
+        f"--{boundary}--\r\n"
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        SEDIA_URL + "?" + qs, data=body, method="POST",
+        headers={"Accept": "application/json",
+                 "Content-Type": f"multipart/form-data; boundary={boundary}"},
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return json.loads(resp.read())
+
+def fetch_eu_portal() -> list:
+    """Open, Velgard-relevant grant topics from the EU Funding & Tenders portal.
+
+    Results come back relevance-ranked; sorting by deadline instead just surfaces
+    whichever calls happen to run furthest into the future. Each page repeats the
+    same topics many times over (~10 unique per 100 rows), so identifiers are
+    deduplicated, and every row is checked client-side for a future deadline and
+    a keyword match before it is accepted.
     """
     def first(lst, fallback=""):
         return lst[0] if lst else fallback
 
-    results = []
-    url = "https://api.tech.ec.europa.eu/search-api/prod/rest/search"
-    params = {
-        "apiKey": "SEDIA",
-        "text": "artificial intelligence cybersecurity deep tech",
-        "pageSize": "50",
-        "pageNumber": "1",
-        "language": "en",
-        "query": json.dumps({
-            "bool": {
-                "must": [
-                    {"terms": {"status": ["31094501", "31094502"]}},  # open/forthcoming
-                ]
-            }
-        }),
-        "sort": json.dumps([{"field": "sortStatus", "order": "ASC"}, {"field": "deadlineDate", "order": "ASC"}])
-    }
-
+    results, seen = [], set()
     try:
-        req_url = url + "?" + urllib.parse.urlencode(params)
-        req = urllib.request.Request(req_url, headers={"Accept": "application/json"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read())
-            for item in data.get("results", []):
-                md = item.get("metadata", {})
-                title = first(md.get("title") or [])
-                desc  = first(md.get("description") or [])
+        for page in range(1, SEDIA_PAGES + 1):
+            data = _sedia_request("artificial intelligence cybersecurity", page)
+            rows = data.get("results") or []
+            if not rows:
+                break
 
-                if not is_relevant(title + " " + desc):
+            for item in rows:
+                md = item.get("metadata", {})
+                opp_id = first(md.get("identifier") or []) or item.get("id", "")
+                if not opp_id or opp_id in seen:
                     continue
+                seen.add(opp_id)
 
                 deadline_raw = first(md.get("deadlineDate") or [])
                 deadline = deadline_raw[:10] if deadline_raw else ""
-                open_date = first(md.get("startDate") or [])[:10]
-                opp_id = first(md.get("identifier") or []) or item.get("id", "")
-                url_path = f"https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/{opp_id}"
+                if not deadline or days_until(deadline) <= 0:
+                    continue   # no deadline, or already closed
 
-                # Detect EIC vs general Horizon
-                programme = first(md.get("programmeName") or [], "Horizon Europe")
-                source = "EIC" if "EIC" in programme else "EU Funding Portal"
+                title = first(md.get("title") or [])
+                # The portal has no description field; the readable blurb is the
+                # top-level summary, which falls back to the indexed content.
+                desc = (item.get("summary") or item.get("content") or "").strip()
+                if not is_relevant(f"{title} {desc}"):
+                    continue
 
+                combined = f"{title} {desc}".lower()
                 categories = []
-                combined = (title + " " + desc).lower()
-                if "artificial intelligence" in combined or " ai " in combined: categories.append("AI")
-                if "cybersecurity" in combined or "cyber security" in combined: categories.append("cybersecurity")
-                if "deep tech" in combined or "deeptech" in combined: categories.append("deep tech")
-                if not categories: categories = ["deep tech"]
+                if "artificial intelligence" in combined or " ai " in combined:
+                    categories.append("AI")
+                if "cybersecurity" in combined or "cyber security" in combined:
+                    categories.append("cybersecurity")
+                if "deep tech" in combined or "deeptech" in combined:
+                    categories.append("deep tech")
+                if not categories:
+                    categories = ["deep tech"]
+
+                # programmeName does not exist on these records; callTitle is the
+                # human-readable cluster (e.g. "ENERGY") and typesOfAction the
+                # instrument (e.g. "HORIZON Innovation Actions").
+                call_title = first(md.get("callTitle") or [])
+                action     = first(md.get("typesOfAction") or [])
+                programme  = " — ".join(p for p in (action, call_title) if p) or "Horizon Europe"
 
                 results.append({
                     "id": opp_id,
                     "title": title,
-                    "source": source,
+                    "source": "EIC" if "EIC" in opp_id.upper() else "EU Funding Portal",
                     "programme": programme,
                     "category": categories,
                     "status": "open",
-                    "open_date": open_date,
+                    "open_date": first(md.get("startDate") or [])[:10],
                     "deadline": deadline,
-                    "budget": first(md.get("budgetTopicAction") or [], "See call page"),
-                    "description": desc[:400] + "..." if len(desc) > 400 else desc,
-                    "url": url_path,
+                    "budget": "See call page",
+                    "description": (desc[:400] + "...") if len(desc) > 400 else desc,
+                    "url": ("https://ec.europa.eu/info/funding-tenders/opportunities"
+                            f"/portal/screen/opportunities/topic-details/{opp_id}"),
                     "tags": ["consortium", "EU"],
                     "verified_on": TODAY_ISO,   # seen live in the portal just now
                     "is_new": False,
@@ -153,7 +197,7 @@ def fetch_eu_portal() -> list:
     except Exception as e:
         print(f"⚠ EU Portal fetch error: {e}")
 
-    print(f"  EU Portal: {len(results)} relevant results")
+    print(f"  EU Portal: {len(results)} relevant results ({len(seen)} topics examined)")
     return results
 
 # ── EIC specific ──────────────────────────────────────────────────────────────
