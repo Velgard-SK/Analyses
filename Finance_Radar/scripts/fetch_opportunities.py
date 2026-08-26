@@ -63,6 +63,9 @@ def fetch_eu_portal() -> list:
     EU Funding & Tenders public search API.
     Returns open calls matching Velgard keywords.
     """
+    def first(lst, fallback=""):
+        return lst[0] if lst else fallback
+
     results = []
     url = "https://api.tech.ec.europa.eu/search-api/prod/rest/search"
     params = {
@@ -93,9 +96,6 @@ def fetch_eu_portal() -> list:
 
                 if not is_relevant(title + " " + desc):
                     continue
-
-                def first(lst, fallback=""):
-                    return lst[0] if lst else fallback
 
                 deadline_raw = first(md.get("deadlineDate") or [])
                 deadline = deadline_raw[:10] if deadline_raw else ""
