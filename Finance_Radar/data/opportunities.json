@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-26T20:15:39.646021+00:00",
+  "last_updated": "2026-08-27T17:55:50.374521+00:00",
   "opportunities": [
     {
       "id": "HORIZON-EIC-2026-ACCELERATOR",
@@ -95,7 +95,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-26",
+      "verified_on": "2026-08-27",
       "is_new": true,
       "closing_soon": false
     },
@@ -118,7 +118,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-26",
+      "verified_on": "2026-08-27",
       "is_new": true,
       "closing_soon": true
     },
@@ -130,7 +130,7 @@
       "category": [
         "AI"
       ],
-      "status": "open",
+      "status": "forthcoming",
       "open_date": "2027-02-10",
       "deadline": "2027-04-13",
       "budget": "See call page",
@@ -140,7 +140,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-26",
+      "verified_on": "2026-08-27",
       "is_new": true,
       "closing_soon": false
     },
@@ -162,7 +162,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-26",
+      "verified_on": "2026-08-27",
       "is_new": true,
       "closing_soon": false
     },
@@ -184,7 +184,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-26",
+      "verified_on": "2026-08-27",
       "is_new": true,
       "closing_soon": false
     },
@@ -206,7 +206,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-26",
+      "verified_on": "2026-08-27",
       "is_new": true,
       "closing_soon": false
     },
@@ -250,7 +250,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-26",
+      "verified_on": "2026-08-27",
       "is_new": true,
       "closing_soon": false
     },
@@ -272,7 +272,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-26",
+      "verified_on": "2026-08-27",
       "is_new": true,
       "closing_soon": false
     },
@@ -298,6 +298,28 @@
         "fast-track"
       ],
       "verified_on": "2026-08-26",
+      "is_new": true,
+      "closing_soon": false
+    },
+    {
+      "id": "HORIZON-EIC-2026-PATHFINDERCHALLENGES-01-03",
+      "title": "DeepRAP: Deep Reasoning, Abstraction & Planning towards trustworthy Cognitive AI Systems",
+      "source": "EIC",
+      "programme": "HORIZON EIC Grants — EIC Pathfinder Challenges 2026",
+      "category": [
+        "AI"
+      ],
+      "status": "open",
+      "open_date": "2026-07-22",
+      "deadline": "2026-10-28",
+      "budget": "See call page",
+      "description": "DeepRAP: Deep Reasoning, Abstraction & Planning towards trustworthy Cognitive AI Systems",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/HORIZON-EIC-2026-PATHFINDERCHALLENGES-01-03",
+      "tags": [
+        "consortium",
+        "EU"
+      ],
+      "verified_on": "2026-08-27",
       "is_new": true,
       "closing_soon": false
     }
