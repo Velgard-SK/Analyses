@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-31T14:30:10.401326+00:00",
+  "last_updated": "2026-09-01T12:08:26.280868+00:00",
   "opportunities": [
     {
       "id": "HORIZON-EIC-2026-ACCELERATOR",
@@ -95,7 +95,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-31",
+      "verified_on": "2026-09-01",
       "is_new": true,
       "closing_soon": false
     },
@@ -118,7 +118,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-31",
+      "verified_on": "2026-09-01",
       "is_new": true,
       "closing_soon": true
     },
@@ -162,7 +162,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-31",
+      "verified_on": "2026-09-01",
       "is_new": true,
       "closing_soon": false
     },
@@ -184,7 +184,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-31",
+      "verified_on": "2026-09-01",
       "is_new": true,
       "closing_soon": false
     },
@@ -250,7 +250,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-31",
+      "verified_on": "2026-09-01",
       "is_new": true,
       "closing_soon": false
     },
@@ -272,7 +272,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-31",
+      "verified_on": "2026-09-01",
       "is_new": true,
       "closing_soon": false
     },
@@ -319,7 +319,74 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-08-31",
+      "verified_on": "2026-09-01",
+      "is_new": true,
+      "closing_soon": false
+    },
+    {
+      "id": "DIGITAL-ECCC-2027-DEPLOY-CYBER-11-CYBERAI",
+      "title": "Cybersecure tools, technologies and services relying on AI",
+      "source": "EU Funding Portal",
+      "programme": "DIGITAL JU Simple Grants — Strengthening European Cybersecurity Technologies, Capacities and Preparedness",
+      "category": [
+        "AI"
+      ],
+      "status": "open",
+      "open_date": "2026-09-01",
+      "deadline": "2027-01-14",
+      "budget": "See call page",
+      "description": "Cybersecure tools, technologies and services relying on AI",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/DIGITAL-ECCC-2027-DEPLOY-CYBER-11-CYBERAI",
+      "tags": [
+        "consortium",
+        "EU"
+      ],
+      "verified_on": "2026-09-01",
+      "is_new": true,
+      "closing_soon": false
+    },
+    {
+      "id": "DIGITAL-ECCC-2027-DEPLOY-CYBER-11-AI4SME",
+      "title": "Strengthening cybersecurity capacities of European SMEs  with cybersecure AI-powered solutions",
+      "source": "EU Funding Portal",
+      "programme": "DIGITAL JU SME Support Actions — Strengthening European Cybersecurity Technologies, Capacities and Preparedness",
+      "category": [
+        "AI",
+        "cybersecurity"
+      ],
+      "status": "open",
+      "open_date": "2026-09-01",
+      "deadline": "2027-01-14",
+      "budget": "See call page",
+      "description": "Strengthening cybersecurity capacities of European SMEs  with cybersecure AI-powered solutions",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/DIGITAL-ECCC-2027-DEPLOY-CYBER-11-AI4SME",
+      "tags": [
+        "consortium",
+        "EU"
+      ],
+      "verified_on": "2026-09-01",
+      "is_new": true,
+      "closing_soon": false
+    },
+    {
+      "id": "DIGITAL-ECCC-2027-DEPLOY-CYBER-11-EULEG",
+      "title": "Strengthening EU cybersecurity capacities & capabilities in line with legislative requirements",
+      "source": "EU Funding Portal",
+      "programme": "DIGITAL JU Simple Grants — Strengthening European Cybersecurity Technologies, Capacities and Preparedness",
+      "category": [
+        "cybersecurity"
+      ],
+      "status": "open",
+      "open_date": "2026-09-01",
+      "deadline": "2027-01-14",
+      "budget": "See call page",
+      "description": "Strengthening EU cybersecurity capacities & capabilities in line with legislative requirements",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/DIGITAL-ECCC-2027-DEPLOY-CYBER-11-EULEG",
+      "tags": [
+        "consortium",
+        "EU"
+      ],
+      "verified_on": "2026-09-01",
       "is_new": true,
       "closing_soon": false
     }
