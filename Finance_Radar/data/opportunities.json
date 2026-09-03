@@ -1,32 +1,6 @@
 {
-  "last_updated": "2026-09-02T11:46:52.284061+00:00",
+  "last_updated": "2026-09-03T11:45:57.543709+00:00",
   "opportunities": [
-    {
-      "id": "HORIZON-EIC-2026-ACCELERATOR",
-      "title": "EIC Accelerator 2026 — Open Call",
-      "source": "EIC",
-      "programme": "Horizon Europe — EIC",
-      "category": [
-        "AI",
-        "cybersecurity",
-        "deep tech"
-      ],
-      "status": "open",
-      "open_date": "2026-01-01",
-      "deadline": "2026-09-02",
-      "budget": "Up to €2.5M grant + up to €10M investment (blended finance)",
-      "description": "EIC Accelerator supports startups and SMEs developing breakthrough innovations at TRL 6-8. Six cut-off dates per year; next cut-off 2 September 2026. 2026 budget: €414M (Open) + €220M (Challenges). Slovak companies fully eligible.",
-      "url": "https://eic.ec.europa.eu/eic-funding-opportunities/eic-accelerator_en",
-      "tags": [
-        "SME",
-        "startup",
-        "equity",
-        "blended finance"
-      ],
-      "verified_on": "2026-08-26",
-      "is_new": false,
-      "closing_soon": true
-    },
     {
       "id": "HORIZON-EIC-2026-PATHFINDER-CHALLENGES",
       "title": "EIC Pathfinder Challenges 2026",
@@ -95,7 +69,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-02",
+      "verified_on": "2026-09-03",
       "is_new": true,
       "closing_soon": false
     },
@@ -118,7 +92,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-02",
+      "verified_on": "2026-09-03",
       "is_new": true,
       "closing_soon": true
     },
@@ -162,7 +136,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-02",
+      "verified_on": "2026-09-03",
       "is_new": true,
       "closing_soon": false
     },
@@ -184,7 +158,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-02",
+      "verified_on": "2026-09-03",
       "is_new": true,
       "closing_soon": false
     },
@@ -250,7 +224,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-02",
+      "verified_on": "2026-09-03",
       "is_new": true,
       "closing_soon": false
     },
@@ -272,7 +246,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-02",
+      "verified_on": "2026-09-03",
       "is_new": true,
       "closing_soon": false
     },
@@ -319,7 +293,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-02",
+      "verified_on": "2026-09-03",
       "is_new": true,
       "closing_soon": false
     },
@@ -341,7 +315,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-02",
+      "verified_on": "2026-09-03",
       "is_new": true,
       "closing_soon": false
     },
@@ -364,7 +338,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-02",
+      "verified_on": "2026-09-03",
       "is_new": true,
       "closing_soon": false
     },
@@ -386,7 +360,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-02",
+      "verified_on": "2026-09-03",
       "is_new": true,
       "closing_soon": false
     }
