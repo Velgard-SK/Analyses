@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-15T12:15:50.873928+00:00",
+  "last_updated": "2026-09-16T12:14:30.801395+00:00",
   "opportunities": [
     {
       "id": "HORIZON-EIC-2026-PATHFINDER-CHALLENGES",
@@ -44,32 +44,9 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-15",
+      "verified_on": "2026-09-16",
       "is_new": true,
       "closing_soon": false
-    },
-    {
-      "id": "HORIZON-CL3-2026-02-CS-ECCC-02",
-      "title": "Enhancing the Security, Privacy and Robustness of AI Models and Systems (SecureAI)",
-      "source": "EU Funding Portal",
-      "programme": "HORIZON Innovation Actions — Indirectly Managed Action by the ECCC (2026)",
-      "category": [
-        "AI",
-        "cybersecurity"
-      ],
-      "status": "open",
-      "open_date": "2026-03-03",
-      "deadline": "2026-09-15",
-      "budget": "See call page",
-      "description": "Enhancing the Security, Privacy and Robustness of AI Models and Systems (SecureAI)",
-      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/HORIZON-CL3-2026-02-CS-ECCC-02",
-      "tags": [
-        "consortium",
-        "EU"
-      ],
-      "verified_on": "2026-09-15",
-      "is_new": true,
-      "closing_soon": true
     },
     {
       "id": "HORIZON-HLTH-2027-02-TOOL-01-two-stage",
@@ -89,7 +66,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-15",
+      "verified_on": "2026-09-16",
       "is_new": true,
       "closing_soon": false
     },
@@ -111,7 +88,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-15",
+      "verified_on": "2026-09-16",
       "is_new": true,
       "closing_soon": false
     },
@@ -133,7 +110,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-15",
+      "verified_on": "2026-09-16",
       "is_new": true,
       "closing_soon": false
     },
@@ -199,7 +176,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-15",
+      "verified_on": "2026-09-16",
       "is_new": true,
       "closing_soon": false
     },
@@ -221,7 +198,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-15",
+      "verified_on": "2026-09-16",
       "is_new": true,
       "closing_soon": false
     },
@@ -290,7 +267,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-15",
+      "verified_on": "2026-09-16",
       "is_new": true,
       "closing_soon": false
     },
@@ -313,7 +290,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-15",
+      "verified_on": "2026-09-16",
       "is_new": true,
       "closing_soon": false
     },
@@ -335,7 +312,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-15",
+      "verified_on": "2026-09-16",
       "is_new": true,
       "closing_soon": false
     },
@@ -357,7 +334,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-15",
+      "verified_on": "2026-09-16",
       "is_new": true,
       "closing_soon": true
     },
@@ -379,7 +356,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-15",
+      "verified_on": "2026-09-16",
       "is_new": true,
       "closing_soon": true
     },
@@ -401,7 +378,7 @@
         "consortium",
         "EU"
       ],
-      "verified_on": "2026-09-15",
+      "verified_on": "2026-09-16",
       "is_new": true,
       "closing_soon": true
     }
